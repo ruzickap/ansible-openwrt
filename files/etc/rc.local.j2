@@ -1,0 +1,18 @@
+# Put your custom commands here that should be executed once
+# the system init finished. By default this file does nothing.
+
+(
+# Wait for network to be fully initialized
+sleep 10
+cat << EOF | sendmail {{ notification_email }}
+Subject: Reboot {{ inventory_hostname }}
+
+
+Openwrt rebooted:
+
+`date`
+
+EOF
+) &
+
+exit 0

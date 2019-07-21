@@ -1,0 +1,337 @@
+# - name: Upgrade router firmware (removes all settings)
+#   raw: sysupgrade -n {{ router_firmware }}
+
+# - name: Wait for reboot
+#   wait_for_connection:
+#     delay: 60
+
+- name: Install Python
+  raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging )
+  changed_when: False
+
+- name: Update opkg repository and install python3-light if not already installed
+  opkg:
+    name: python3-light
+    update_cache: yes
+
+- name: Configure hostname
+  command: uci set system.@system[0].hostname={{ inventory_hostname_short }}
+  changed_when: false
+
+- name: Configure timezone
+  command: uci set system.@system[0].timezone={{ timezone }}
+  changed_when: false
+
+- name: Configure networks
+  template:
+    dest: /etc/config/network
+    src: files/{{ inventory_hostname }}/etc/config/network.j2
+  tags: network
+
+- name: Configure WiFi
+  template:
+    dest: /etc/config/wireless
+    src: files/{{ inventory_hostname }}/etc/config/wireless.j2
+
+- name: Configure DHCP
+  template:
+    dest: /etc/config/dhcp
+    src: files/{{ inventory_hostname }}/etc/config/dhcp.j2
+
+- name: Configure Firewall
+  copy:
+    dest: /etc/config/firewall
+    src: files/{{ inventory_hostname }}/etc/config/firewall
+
+- name: Create dropbear_rsa_host_key for dropbear (/etc/dropbear/dropbear_rsa_host_key)
+  copy:
+    dest: /etc/dropbear/dropbear_rsa_host_key
+    src: files/{{ inventory_hostname }}/etc/dropbear/dropbear_rsa_host_key
+    mode: 0600
+
+- name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
+  template:
+    dest: /etc/dropbear/authorized_keys
+    src: files/etc/dropbear/authorized_keys.j2
+
+- name: Install packages
+  opkg:
+    name: "{{ item }}"
+  loop: "{{ packages }}"
+  register: result
+  until: result is succeeded
+
+- name: Set root password
+  replace:
+    path: /etc/shadow
+    regexp: "^root:([^:]+):"
+    replace: "root:{{ root_password | string | password_hash('md5') }}:"
+  changed_when: false
+
+- name: Change root shell to /bin/bash
+  replace:
+    path: /etc/passwd
+    regexp: "^root:(.*):/bin/ash"
+    replace: "root:\\1:/bin/bash"
+
+- name: Configure attached block device {{ usb_disk_device }}
+  template:
+    dest: /etc/config/fstab
+    src: files/etc/config/fstab.j2
+
+- name: Create {{ usb_disk_mount_path }} directory
+  file:
+    path: "{{ usb_disk_mount_path }}"
+    state: directory
+
+- name: Check the mounted disks
+  command: cat /proc/mounts
+  changed_when: false
+  register: mount_output
+
+- name: Create file {{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT if {{ usb_disk_device }}1 is not mounted
+  file:
+    path: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
+    state: touch
+    mode: 0444
+  when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+- name: Mount USB disk
+  command: /sbin/block mount
+  register: block_mount
+  changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
+  when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+- name: Add nice prompt for root user
+  blockinfile:
+    dest: /etc/profile
+    block: |
+      ps1_prompt() {
+          local ps1_exit=$?
+
+          if [ $ps1_exit -eq 0 ]; then
+              ps1_status='\$'
+          else
+              ps1_status=`echo -e "\[\\033[1;31m\]"'\\\$'"\[\\033[00m\]"`
+          fi
+
+          PS1="\[\\033[01;31m\]\u@\h\[\\033[00m\]:\[\\033[01;34m\]\w${ps1_status} \[\\033[00m\]"
+      }
+
+      PROMPT_COMMAND="ps1_prompt;$PROMPT_COMMAND"
+
+- name: Create /etc/profile.d directory
+  file:
+    path: /etc/profile.d
+    state: directory
+
+- name: Get the history format file (/etc/profile.d/history_format.sh)
+  copy:
+    dest: /etc/profile.d/history_format.sh
+    content: |
+      HISTTIMEFORMAT="|%F %R| "
+
+- name: Configure vnstat (/etc/config/vnstat)
+  copy:
+    dest: /etc/config/vnstat
+    src: files/{{ inventory_hostname }}/etc/config/vnstat
+
+############################################
+# Add backup script
+############################################
+
+- name: Create backup directory
+  file:
+    path: "{{ usb_disk_mount_path }}/openwrt"
+    state: directory
+
+- name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
+  copy:
+    dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
+    src: files/etc/init.d/collectd_nlbwmon_vnstat-backup
+    mode: 0755
+
+- name: Configure to run collectd_nlbwmon_vnstat-backup daily
+  cron:
+    name: "Backup collectd nlbwmon vnstat databases"
+    minute: "0"
+    hour: "2"
+    job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
+
+############################################
+# Configure ssmtp + email notifications
+############################################
+
+- name: Configure ssmtp
+  template:
+    dest: /etc/ssmtp/ssmtp.conf
+    src: files/etc/ssmtp/ssmtp.conf.j2
+    mode: 0600
+
+- name: Reboot notification
+  template:
+    dest: /etc/rc.local
+    src: files/etc/rc.local.j2
+
+############################################
+# Samba
+############################################
+
+- name: Configure Samba (/etc/config/samba)
+  template:
+    dest: /etc/config/samba
+    src: files/{{ inventory_hostname }}/etc/config/samba.j2
+
+- name: Create local credential file for smaba
+  delegate_to: localhost
+  copy:
+    dest: "{{ lookup('env','HOME') }}/data/{{ inventory_hostname }}-cifs-credentials"
+    content: |
+      username=root
+      password={{ samba_root_password }}
+    mode: 0600
+    owner: "{{ lookup('env','USER') }}"
+    group: "{{ lookup('env','USER') }}"
+
+- name: Set SMB password for root
+  shell: echo -e "{{ samba_root_password }}\n{{ samba_root_password }}" | smbpasswd -a -s root
+  changed_when: false
+
+- name: Allow root to use samba
+  replace:
+    path: /etc/samba/smb.conf.template
+    regexp: "^(\\s)invalid users = root"
+    replace: "\\1# invalid users = root"
+
+############################################
+# Transmission
+############################################
+
+- name: Create directories for torrents
+  file:
+    path: "{{ usb_disk_mount_path }}/torrents/{{ item }}"
+    state: directory
+    owner: transmission
+    group: transmission
+  loop:
+    - config
+    - torrents
+    - torrents-completed
+    - torrents-incomplete
+
+- name: Configure transmission
+  template:
+    dest: /etc/config/transmission
+    src: files/etc/config/transmission.j2
+
+- name: Install transmission torrent done smtp notification script
+  template:
+    dest: /etc/torrent-done.sh
+    src: files/etc/torrent-done.sh.j2
+    mode: 0755
+
+############################################
+# Web server
+############################################
+
+- name: Remove old ssl certificates /etc/{uhttpd.crt,uhttpd.key} to let them autogenerated after uhttp starts
+  file:
+    path: "{{ item }}"
+    state: absent
+  loop:
+    - /etc/uhttpd.crt
+    - /etc/uhttpd.key
+
+- name: Create /www/torrents directory
+  file:
+    path: /www/torrents
+    state: directory
+
+- name: Allow access to torrents-completed and torrents using http (uhttpd)
+  file:
+    src: "{{ usb_disk_mount_path }}/{{ item }}"
+    dest: /www/{{ item }}
+    state: link
+    force: yes
+  loop:
+    - torrents/torrents-completed
+    - torrents/torrents
+
+- name: Configure ssl for uhttpd
+  shell: |
+    uci set uhttpd.defaults.country=cz &&
+    uci set uhttpd.defaults.commonname={{ inventory_hostname }} &&
+    uci set uhttpd.defaults.location=CZ &&
+    uci set uhttpd.defaults.location="Czech Republic" &&
+    uci set uhttpd.defaults.state="Czech Republic"
+  changed_when: false
+
+- name: Configure watchcat
+  command: uci set system.@watchcat[0].period=5m
+  changed_when: false
+
+- name: Configure collectd_df
+  shell: |
+    uci set luci_statistics.collectd_df.enable=1 &&
+    uci set luci_statistics.collectd_df.Devices=/dev/{{ usb_disk_device }}1 &&
+    uci set luci_statistics.collectd_df.MountPoints={{ usb_disk_mount_path }} &&
+    uci set luci_statistics.collectd_df.FSTypes=ext4
+  changed_when: false
+
+- name: Configure collectd_disk
+  shell: |
+    uci set luci_statistics.collectd_disk.enable=1 &&
+    uci set luci_statistics.collectd_disk.Disks={{ usb_disk_device }}
+  changed_when: false
+
+- name: Configure collectd_dns
+  shell: |
+    uci set luci_statistics.collectd_dns.enable=1 &&
+    uci set luci_statistics.collectd_dns.Interfaces=any
+  changed_when: false
+
+- name: Configure collectd_interface
+  command: |
+    uci set luci_statistics.collectd_interface.Interfaces="{{ luci_statistics_collectd_interface_interfaces }}"
+  changed_when: false
+
+- name: Configure collectd_ping
+  shell: |
+    uci set luci_statistics.collectd_processes.enable=1 &&
+    uci set luci_statistics.collectd_processes.Processes="{{ luci_statistics_collectd_processes_processes }}"
+  changed_when: false
+
+- name: Configure collectd_ping
+  shell: |
+    uci set luci_statistics.collectd_ping.enable=1 &&
+    uci set luci_statistics.collectd_ping.Hosts=www.google.com
+  changed_when: false
+
+- name: Configure collectd_rrdtool
+  shell: |
+    uci set luci_statistics.collectd_rrdtool.CacheTimeout=120 &&
+    uci set luci_statistics.collectd_rrdtool.CacheFlush=900
+  changed_when: false
+
+- name: Configure collectd_tcpconns
+  shell: |
+    uci set luci_statistics.collectd_tcpconns.LocalPorts="{{ luci_statistics_collectd_tcpconns_localports }}" &&
+    uci set luci_statistics.collectd_tcpconns.enable=1
+  changed_when: false
+
+- name: Configure collectd_uptime
+  command: |
+    uci set luci_statistics.collectd_uptime.enable=1
+  changed_when: false
+
+- name: Enable hd-idle
+  command: |
+    uci set hd-idle.@hd-idle[-1].enabled=1
+  changed_when: false
+
+- name: Enable services on boot
+  openwrt_init:
+    name: "{{ item }}"
+    state: started
+    enabled: yes
+  loop: "{{ enable_boot_services }}"

@@ -1,0 +1,19 @@
+
+config ddns 'global'
+	option ddns_dateformat '%F %R'
+	option ddns_loglines '250'
+	option upd_privateip '1'
+
+config service 'myddns_ipv4'
+	option enabled '1'
+	option domain '{{ inventory_hostname_short }}@{{ domain }}'
+	option username '{{ ddns_cloudflare_username }}'
+	option password '{{ ddns_cloudflare_passwrod }}'
+	# option interface 'wlan0'
+	# option ip_network "wwan"
+	# option interface 'br-lan'
+	# option ip_network "lan"
+	# option ip_source 'network'
+	option ip_source 'web'
+	option service_name 'cloudflare.com-v4'
+	option lookup_host '{{ inventory_hostname }}'

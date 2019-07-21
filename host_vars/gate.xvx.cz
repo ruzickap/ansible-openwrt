@@ -1,0 +1,134 @@
+router_firmware: http://downloads.openwrt.org/releases/18.06.4/targets/ar71xx/generic/openwrt-18.06.4-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
+notification_email: petr.ruzicka@gmail.com
+
+ddns_cloudflare_username: petr.ruzicka@gmail.com
+ddns_cloudflare_passwrod: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  64646163646365626661383632656637343439396637623932333962656235326438616131666261
+  3530333263303964643266653661383330353236353262340a653635356332623662326439626362
+  37323033316133313266346135663334376363643364623234326165366365653462336136323231
+  3732626138396263620a303038663461303066323938323632326565636233646638306461643436
+  30316630663734316466353564353165303338356232393634393339623261613639356461636263
+  3762666535303363663437613034326630666464353335383638
+
+guest_network_subnet: 172.16.254.0/24
+
+root_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  30373465653331643162633965666630383832326565356630653063376138396561383266616135
+  6433653730633562616434306437393039376234376133340a636466386262373337346666616162
+  62646163356538326131636336306533636464663665306338306661353631313930316130316661
+  3164333635643136330a373061653661363562636435663032303433623931646139323536663831
+  6261
+
+wifi_2ghz_channel: 1
+wifi_5ghz_channel: 40
+wifi_ssid: PeRu
+wifi_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  65646564313039626264643230316435326437313432636662656566366432633131343334623666
+  6233643032393366376134623361336263636430653565360a653665346437643135333230313061
+  39626234396536626165316533323964663838383362373063333662383836663666623038313962
+  6337666136383739330a633430623261616534393362313534353661666335303431613066623630
+  6532
+
+wwan_wifi_ssid: daa9dcd
+wwan_wifi_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  63346534393630393164383930613031353463333262613832613731363338366138356265643666
+  3061636339663338383333626638323732346239316535320a336563333037653630626666616163
+  32646231346366633533303465313336663065666633656364336466313563343134636364386462
+  3132663234613266380a393635656664316365356532613533343063343363356238343862623539
+  3239
+
+samba_root_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  65643562633666346433393130336139363931616531356331353030666161623162643530393432
+  6436633332643237303664363331383562323162326335610a313263323531356337643030303763
+  31616263303337643936366132653031633231643931343564363461306231366139376664326231
+  3866613363636436310a333037383963323663663632323965313761643665353734353031656430
+  3630
+
+smtp_gmail_auth_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  34613633613837663231653861646232303133313462666430373936643733376536623466363538
+  3764653364313739663066626263653938343036353463660a633833643166653763393764356466
+  66346538316232636536363835356533353264303437616531363635643332656262633264346136
+  3136613733373662300a333032653435343262323461646338353237363730653936363866376563
+  34316238633838363439356465376365353963373362613937323538643261636130
+
+scm_download_guest: 2000
+scm_upload_guest: 1000
+
+luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear dynamic_dns_updater.sh hostapd nlbwmon ntpd openvpn smbd transmission-daemon uhttpd vnstatd"
+luci_statistics_collectd_interface_interfaces: "eth0.2 br-lan tunipv6 wlan0 wlan0-1 wlan0-2 wlan1"
+
+transmission_speed_limit_down: 100
+transmission_speed_limit_up: 5
+
+dhcp_hosts:
+  - name: andy-phone-wifi
+    ip: 192.168.1.2
+    mac: ac:ee:9e:47:04:1a
+  - name: andy-nb-wifi
+    ip: 192.168.1.3
+    mac: 94:53:30:34:3e:a7
+  - name: peru-phone-wifi
+    ip: 192.168.1.4
+    mac: a8:b8:6e:83:b4:ca
+  - name: peru-nb-wifi
+    ip: 192.168.1.5
+    mac: 44:03:2c:69:49:de
+  - name: raspberrypi-wifi
+    ip: 192.168.1.6
+    mac: b8:27:eb:ac:e3:42
+  - name: revogi-wifi
+    ip: 192.168.1.7
+    mac: b0:f8:93:19:d0:72
+  - name: peru-nb-nic
+    ip: 192.168.1.130
+    mac: 54:e1:ad:b6:ce:c5
+  - name: peru-tv-nic
+    ip: 192.168.1.131
+    mac: 00:12:fb:94:1b:9a
+  - name: raspberrypi-nic
+    ip: 192.168.1.132
+    mac: b8:27:eb:f9:b6:17
+
+packages:
+  - bash                                  # libncurses libreadline terminfo
+  - block-mount
+  - collectd-mod-conntrack
+  - collectd-mod-df
+  - collectd-mod-disk
+  - collectd-mod-dns                      # libpcap
+  - collectd-mod-ping                     # liboping
+  - collectd-mod-processes
+  - collectd-mod-tcpconns
+  - collectd-mod-uptime
+  - ddns-scripts_cloudflare.com-v4        # ca-bundle curl libcurl libmbedtls
+  - hd-idle
+  - htop                                  # terminfo libncurses
+  - kmod-fs-ext4
+  - kmod-usb-storage
+  - less                                  # libncurses terminfo
+  - luci-app-ddns
+  - luci-app-hd-idle
+  - luci-app-nlbwmon                      # kmod-nf-conntrack-netlink kmod-nfnetlink nlbwmon
+  - luci-app-samba                        # samba36-server
+  - luci-app-statistics                   # collectd-mod-* librrd1 rrdtool1
+  - luci-app-transmission
+  - luci-app-vnstat                       # libgd libjpeg libpng vnstat vnstati
+  - luci-app-watchcat
+  - luci-ssl                              # px5g-mbedtls libustream-mbedtls libmbedtls
+  - openvpn-mbedtls                       # kmod-tun liblzo libmbedtls
+  - rsync                                 # libpopt
+  - ssmtp                                 # libopenssl
+  - transmission-daemon-mbedtls           # ca-bundle libcurl libevent2 libmbedtls libminiupnpc libnatpmp
+  - transmission-web
+
+enable_boot_services:
+  - collectd_nlbwmon_vnstat-backup
+  - cron
+  - ddns
+  - transmission

@@ -1,0 +1,10 @@
+config vnstat
+	list interface 'br-lan'
+	list interface 'eth0.2'
+	list interface 'tunipv6'
+	list interface 'wlan0'
+	list interface 'wlan0-1'
+	list interface 'wlan0-2'
+	list interface 'wlan1'
+	list interface 'eth0.2'
+

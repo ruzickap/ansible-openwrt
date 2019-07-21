@@ -1,0 +1,25 @@
+- name: Download MC config file
+  get_url:
+    url: https://raw.githubusercontent.com/ruzickap/ansible-role-my_common_defaults/master/files/etc/skel/.config/mc/ini
+    dest: /etc/mc/ini
+
+- name: Configure MC to run without mouse (/etc/profile.d/my-mc.sh)
+  copy:
+    dest: /etc/profile.d/my-mc.sh
+    src: files/{{ inventory_hostname }}/etc/profile.d/my-mc.sh
+
+- name: Enable file highightning in mc
+  get_url:
+    url: https://raw.github.com/MidnightCommander/mc/master/misc/filehighlight.ini
+    dest: /etc/mc/filehighlight.ini
+
+- name: Enable adblock
+  command: |
+    uci set adblock.global.adb_enabled=1
+  changed_when: false
+
+- name: Enable adblock lists
+  command: |
+    uci set adblock.{{ item }}.enabled=1
+  loop: "{{ adblock_lists }}"
+  changed_when: false

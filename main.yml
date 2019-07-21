@@ -1,0 +1,14 @@
+---
+- hosts: all
+  gather_facts: False
+
+  tasks:
+    - name: Include tasks
+      include_tasks: "playbooks/common.yml"
+
+    - name: Include specific tasks
+      include_tasks: playbooks/tasks_{{ inventory_hostname }}.yml
+
+    - name: UCI commit
+      command: uci commit
+      changed_when: false

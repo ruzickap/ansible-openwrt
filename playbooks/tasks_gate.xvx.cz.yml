@@ -1,0 +1,35 @@
+- name: Configure alerting for dnsmasq (notify when there is new MAC on the network)
+  lineinfile:
+    path: /etc/dnsmasq.conf
+    line: 'dhcp-script=/etc/dnsmasq-script.sh'
+
+- name: Copy the dnsmasq-script.sh to /etc/
+  template:
+    dest: /etc/dnsmasq-script.sh
+    src: files/{{ inventory_hostname }}/etc/dnsmasq-script.sh.j2
+    mode: 0755
+
+- name: Configure ddns
+  template:
+    dest: /etc/config/ddns
+    src: files/{{ inventory_hostname }}/etc/config/ddns.j2
+
+- name: Configure OpenVPN (/etc/config/openvpn)
+  copy:
+    dest: /etc/config/openvpn
+    src: files/{{ inventory_hostname }}/etc/config/openvpn
+
+- name: Put OpenVPN VPS Free configuration to /etc/openvpn/
+  copy:
+    dest: /etc/openvpn/ipv6tun-petrruzicka1.ovpn
+    src: files/{{ inventory_hostname }}/etc/openvpn/ipv6tun-petrruzicka1.ovpn
+
+- name: Allow play music / video using http (uhttpd)
+  file:
+    src: "{{ usb_disk_mount_path }}/{{ item }}"
+    dest: /www/{{ item | lower }}
+    state: link
+    force: yes
+  loop:
+    - Music
+    - movies
