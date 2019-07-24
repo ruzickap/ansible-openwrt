@@ -23,3 +23,10 @@
     uci set adblock.{{ item }}.enabled=1
   loop: "{{ adblock_lists }}"
   changed_when: false
+
+- name: Cronjob for adblock regular block list update
+  cron:
+    name: "Adblock regular block list update"
+    minute: "0"
+    hour: "4"
+    job: "/etc/init.d/adblock reload"
