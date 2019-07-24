@@ -85,6 +85,7 @@ packages:
   - wget
 
 enable_boot_services:
+  - adblock
   - collectd_nlbwmon_vnstat-backup
   - cron
   - transmission
