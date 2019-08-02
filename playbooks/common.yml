@@ -64,7 +64,7 @@
 - name: Set root password
   replace:
     path: /etc/shadow
-    regexp: "^root:([^:]+):"
+    regexp: "^root:([^:]*):"
     replace: "root:{{ root_password | string | password_hash('md5') }}:"
   changed_when: false
 
@@ -73,34 +73,6 @@
     path: /etc/passwd
     regexp: "^root:(.*):/bin/ash"
     replace: "root:\\1:/bin/bash"
-
-- name: Configure attached block device {{ usb_disk_device }}
-  template:
-    dest: /etc/config/fstab
-    src: files/etc/config/fstab.j2
-
-- name: Create {{ usb_disk_mount_path }} directory
-  file:
-    path: "{{ usb_disk_mount_path }}"
-    state: directory
-
-- name: Check the mounted disks
-  command: cat /proc/mounts
-  changed_when: false
-  register: mount_output
-
-- name: Create file {{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT if {{ usb_disk_device }}1 is not mounted
-  file:
-    path: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
-    state: touch
-    mode: 0444
-  when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
-
-- name: Mount USB disk
-  command: /sbin/block mount
-  register: block_mount
-  changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
-  when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
 
 - name: Add nice prompt for root user
   blockinfile:
@@ -142,13 +114,13 @@
 
 - name: Create backup directory
   file:
-    path: "{{ usb_disk_mount_path }}/openwrt"
+    path: "{{ openwrt_backup_directory }}"
     state: directory
 
 - name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
-  copy:
+  template:
     dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
-    src: files/etc/init.d/collectd_nlbwmon_vnstat-backup
+    src: files/etc/init.d/collectd_nlbwmon_vnstat-backup.j2
     mode: 0755
 
 - name: Configure to run collectd_nlbwmon_vnstat-backup daily
@@ -174,63 +146,6 @@
     src: files/etc/rc.local.j2
 
 ############################################
-# Samba
-############################################
-
-- name: Configure Samba (/etc/config/samba)
-  template:
-    dest: /etc/config/samba
-    src: files/{{ inventory_hostname }}/etc/config/samba.j2
-
-- name: Create local credential file for smaba
-  delegate_to: localhost
-  copy:
-    dest: "{{ lookup('env','HOME') }}/data/{{ inventory_hostname }}-cifs-credentials"
-    content: |
-      username=root
-      password={{ samba_root_password }}
-    mode: 0600
-    owner: "{{ lookup('env','USER') }}"
-    group: "{{ lookup('env','USER') }}"
-
-- name: Set SMB password for root
-  shell: echo -e "{{ samba_root_password }}\n{{ samba_root_password }}" | smbpasswd -a -s root
-  changed_when: false
-
-- name: Allow root to use samba
-  replace:
-    path: /etc/samba/smb.conf.template
-    regexp: "^(\\s)invalid users = root"
-    replace: "\\1# invalid users = root"
-
-############################################
-# Transmission
-############################################
-
-- name: Create directories for torrents
-  file:
-    path: "{{ usb_disk_mount_path }}/torrents/{{ item }}"
-    state: directory
-    owner: transmission
-    group: transmission
-  loop:
-    - config
-    - torrents
-    - torrents-completed
-    - torrents-incomplete
-
-- name: Configure transmission
-  template:
-    dest: /etc/config/transmission
-    src: files/etc/config/transmission.j2
-
-- name: Install transmission torrent done smtp notification script
-  template:
-    dest: /etc/torrent-done.sh
-    src: files/etc/torrent-done.sh.j2
-    mode: 0755
-
-############################################
 # Web server
 ############################################
 
@@ -241,21 +156,6 @@
   loop:
     - /etc/uhttpd.crt
     - /etc/uhttpd.key
-
-- name: Create /www/torrents directory
-  file:
-    path: /www/torrents
-    state: directory
-
-- name: Allow access to torrents-completed and torrents using http (uhttpd)
-  file:
-    src: "{{ usb_disk_mount_path }}/{{ item }}"
-    dest: /www/{{ item }}
-    state: link
-    force: yes
-  loop:
-    - torrents/torrents-completed
-    - torrents/torrents
 
 - name: Configure ssl for uhttpd
   shell: |
@@ -268,20 +168,6 @@
 
 - name: Configure watchcat
   command: uci set system.@watchcat[0].period=5m
-  changed_when: false
-
-- name: Configure collectd_df
-  shell: |
-    uci set luci_statistics.collectd_df.enable=1 &&
-    uci set luci_statistics.collectd_df.Devices=/dev/{{ usb_disk_device }}1 &&
-    uci set luci_statistics.collectd_df.MountPoints={{ usb_disk_mount_path }} &&
-    uci set luci_statistics.collectd_df.FSTypes=ext4
-  changed_when: false
-
-- name: Configure collectd_disk
-  shell: |
-    uci set luci_statistics.collectd_disk.enable=1 &&
-    uci set luci_statistics.collectd_disk.Disks={{ usb_disk_device }}
   changed_when: false
 
 - name: Configure collectd_dns
@@ -322,11 +208,6 @@
 - name: Configure collectd_uptime
   command: |
     uci set luci_statistics.collectd_uptime.enable=1
-  changed_when: false
-
-- name: Enable hd-idle
-  command: |
-    uci set hd-idle.@hd-idle[-1].enabled=1
   changed_when: false
 
 - name: Enable services on boot

@@ -15,7 +15,7 @@ vnstat_option() {
         sed -ne "s/^[[:space:]]*$1[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" /etc/vnstat.conf
 }
 
-BACKUP_DIR="$(uci get fstab.@mount[0].target)/openwrt/"
+BACKUP_DIR="{{ openwrt_backup_directory }}"
 LOGGER_TAG=collectd_nlbwmon_vnstat-backup
 VNSTAT_DIR="$(vnstat_option DatabaseDir)"
 VNSTAT_DIR_BASENAME="$(basename $VNSTAT_DIR)"

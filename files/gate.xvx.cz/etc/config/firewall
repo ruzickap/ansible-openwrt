@@ -160,22 +160,6 @@ config include
 
 ### My
 
-# Incomming web traffic for transmission
-config rule
-	option name      'transmission-http'
-	option src       'wan'
-	option target    'ACCEPT'
-	option proto     'tcp'
-	option dest_port '9091'
-
-# Incomming torrent traffic for transmission
-config rule
-	option name      'transmission'
-	option src       'wan'
-	option target    'ACCEPT'
-	option proto     'tcpudp'
-	option dest_port '51413'
-
 # port redirect of remapped ssh port (22222) on wan
 config redirect
 	option name       'Allow-SSH-22222'

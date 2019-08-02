@@ -4,9 +4,4 @@ timezone: CET-1CEST,M3.5.0,M10.5.0/3
 
 smtp_gmail_auth_user: openwrt.email
 
-usb_disk_device: sda
-usb_disk_mount_path: /mnt/usb
-
-luci_statistics_collectd_tcpconns_localports: "22 80 139 443 445 22222"
-
 domain: "{{ inventory_hostname.split('.')[1:] | join('.') }}"

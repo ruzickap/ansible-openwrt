@@ -36,6 +36,12 @@ smtp_gmail_auth_password: !vault |
   3236393332373263340a343364323032336536653564343464643633613865303832666235643036
   61303564623630613935663036303463326266366532336265376265316466343261
 
+usb_disk_device: sda
+usb_disk_mount_path: /mnt/usb
+
+openwrt_backup_directory: "{{ usb_disk_mount_path }}/openwrt"
+
+luci_statistics_collectd_tcpconns_localports: "22 80 139 443 445 22222"
 luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear hostapd nlbwmon ntpd smbd transmission-daemon uhttpd vnstatd"
 luci_statistics_collectd_interface_interfaces: "br-lan eth1 wlan0 wlan1 wlan1-1"
 

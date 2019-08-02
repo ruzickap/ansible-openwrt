@@ -41,14 +41,6 @@ wwan_wifi_password: !vault |
   3132663234613266380a393635656664316365356532613533343063343363356238343862623539
   3239
 
-samba_root_password: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  65643562633666346433393130336139363931616531356331353030666161623162643530393432
-  6436633332643237303664363331383562323162326335610a313263323531356337643030303763
-  31616263303337643936366132653031633231643931343564363461306231366139376664326231
-  3866613363636436310a333037383963323663663632323965313761643665353734353031656430
-  3630
-
 smtp_gmail_auth_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   34613633613837663231653861646232303133313462666430373936643733376536623466363538
@@ -57,14 +49,14 @@ smtp_gmail_auth_password: !vault |
   3136613733373662300a333032653435343262323461646338353237363730653936363866376563
   34316238633838363439356465376365353963373362613937323538643261636130
 
+openwrt_backup_directory: /etc/backup
+
 scm_download_guest: 2000
 scm_upload_guest: 1000
 
-luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear dynamic_dns_updater.sh hostapd nlbwmon ntpd openvpn smbd transmission-daemon uhttpd vnstatd"
+luci_statistics_collectd_tcpconns_localports: "22 80 443"
+luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear dynamic_dns_updater.sh hostapd nlbwmon ntpd openvpn uhttpd vnstatd"
 luci_statistics_collectd_interface_interfaces: "eth0.2 br-lan tunipv6 wlan0 wlan0-1 wlan0-2 wlan1"
-
-transmission_speed_limit_down: 100
-transmission_speed_limit_up: 5
 
 dhcp_hosts:
   - name: andy-phone-wifi
@@ -97,7 +89,6 @@ dhcp_hosts:
 
 packages:
   - bash                                  # libncurses libreadline terminfo
-  - block-mount
   - collectd-mod-conntrack
   - collectd-mod-df
   - collectd-mod-disk
@@ -107,28 +98,19 @@ packages:
   - collectd-mod-tcpconns
   - collectd-mod-uptime
   - ddns-scripts_cloudflare.com-v4        # ca-bundle curl libcurl libmbedtls
-  - hd-idle
   - htop                                  # terminfo libncurses
-  - kmod-fs-ext4
-  - kmod-usb-storage
   - less                                  # libncurses terminfo
   - luci-app-ddns
-  - luci-app-hd-idle
   - luci-app-nlbwmon                      # kmod-nf-conntrack-netlink kmod-nfnetlink nlbwmon
-  - luci-app-samba                        # samba36-server
   - luci-app-statistics                   # collectd-mod-* librrd1 rrdtool1
-  - luci-app-transmission
   - luci-app-vnstat                       # libgd libjpeg libpng vnstat vnstati
   - luci-app-watchcat
   - luci-ssl                              # px5g-mbedtls libustream-mbedtls libmbedtls
   - openvpn-mbedtls                       # kmod-tun liblzo libmbedtls
   - rsync                                 # libpopt
   - ssmtp                                 # libopenssl
-  - transmission-daemon-mbedtls           # ca-bundle libcurl libevent2 libmbedtls libminiupnpc libnatpmp
-  - transmission-web
 
 enable_boot_services:
   - collectd_nlbwmon_vnstat-backup
   - cron
   - ddns
-  - transmission

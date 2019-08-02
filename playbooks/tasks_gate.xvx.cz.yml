@@ -23,13 +23,3 @@
   copy:
     dest: /etc/openvpn/ipv6tun-petrruzicka1.ovpn
     src: files/{{ inventory_hostname }}/etc/openvpn/ipv6tun-petrruzicka1.ovpn
-
-- name: Allow play music / video using http (uhttpd)
-  file:
-    src: "{{ usb_disk_mount_path }}/{{ item }}"
-    dest: /www/{{ item | lower }}
-    state: link
-    force: yes
-  loop:
-    - Music
-    - movies
