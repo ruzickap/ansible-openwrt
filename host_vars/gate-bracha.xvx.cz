@@ -10,7 +10,7 @@ root_password: !vault |
       3234
 
 wifi_ssid: kerova11
-wifi_2ghz_channel: 1
+wifi_2ghz_channel: 13
 wifi_5ghz_channel: 40
 wifi_password: !vault |
       $ANSIBLE_VAULT;1.1;AES256
