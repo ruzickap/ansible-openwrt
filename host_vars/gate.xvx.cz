@@ -73,7 +73,7 @@ dhcp_hosts:
     mac: 44:03:2c:69:49:de
   - name: raspberrypi-wifi
     ip: 192.168.1.6
-    mac: b8:27:eb:ac:e3:42
+    mac: dc:a6:32:0e:bd:14
   - name: revogi-wifi
     ip: 192.168.1.7
     mac: b0:f8:93:19:d0:72
@@ -85,7 +85,7 @@ dhcp_hosts:
     mac: 00:12:fb:94:1b:9a
   - name: raspberrypi-nic
     ip: 192.168.1.132
-    mac: b8:27:eb:f9:b6:17
+    mac: dc:a6:32:0e:bd:13
 
 packages:
   - bash                                  # libncurses libreadline terminfo
