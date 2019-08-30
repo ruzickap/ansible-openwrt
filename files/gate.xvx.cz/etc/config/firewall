@@ -168,3 +168,11 @@ config redirect
 	option dest       'lan'
 	option dest_port  '22'
 	option proto      'tcp'
+
+config rule
+	option name 'Allow SSH to router over IPv6'
+	option family 'ipv6'
+	option src 'wan'
+	option proto 'tcp'
+	option dest_port '22'
+	option target 'ACCEPT'
