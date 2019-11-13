@@ -1,4 +1,4 @@
-router_firmware: http://downloads.openwrt.org/releases/18.06.4/targets/ar71xx/generic/openwrt-18.06.4-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
+router_firmware: http://downloads.openwrt.org/releases/18.06.5/targets/ar71xx/generic/openwrt-18.06.5-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
 notification_email: petr.ruzicka@gmail.com
 
 ddns_cloudflare_username: petr.ruzicka@gmail.com
@@ -77,6 +77,12 @@ dhcp_hosts:
   - name: revogi-wifi
     ip: 192.168.1.7
     mac: b0:f8:93:19:d0:72
+  - name: alexa-wifi
+    ip: 192.168.1.8
+    mac: 68:54:fd:76:66:fc
+  - name: raspberrypi3-wifi
+    ip: 192.168.1.9
+    mac: b8:27:eb:ac:e3:42
   - name: peru-nb-nic
     ip: 192.168.1.130
     mac: 54:e1:ad:b6:ce:c5
@@ -86,6 +92,9 @@ dhcp_hosts:
   - name: raspberrypi-nic
     ip: 192.168.1.132
     mac: dc:a6:32:0e:bd:13
+  - name: raspberrypi3-nic
+    ip: 192.168.1.133
+    mac: b8:27:eb:f9:b6:17 RPI3
 
 packages:
   - bash                                  # libncurses libreadline terminfo
