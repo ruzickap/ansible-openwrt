@@ -83,6 +83,9 @@ dhcp_hosts:
   - name: raspberrypi3-wifi
     ip: 192.168.1.9
     mac: b8:27:eb:ac:e3:42
+  - name: raspberrypi3a-wifi
+    ip: 192.168.1.10
+    mac: b8:27:eb:c0:14:4c
   - name: peru-nb-nic
     ip: 192.168.1.130
     mac: 54:e1:ad:b6:ce:c5
