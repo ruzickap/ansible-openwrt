@@ -97,7 +97,7 @@ dhcp_hosts:
     mac: dc:a6:32:0e:bd:13
   - name: raspberrypi3-nic
     ip: 192.168.1.133
-    mac: b8:27:eb:f9:b6:17 RPI3
+    mac: b8:27:eb:f9:b6:17
 
 packages:
   - bash                                  # libncurses libreadline terminfo
