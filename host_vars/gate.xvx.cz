@@ -1,4 +1,4 @@
-router_firmware: http://downloads.openwrt.org/releases/18.06.5/targets/ar71xx/generic/openwrt-18.06.5-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
+router_firmware: http://downloads.openwrt.org/releases/19.07.0/targets/ar71xx/generic/openwrt-19.07.0-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
 notification_email: petr.ruzicka@gmail.com
 
 ddns_cloudflare_username: petr.ruzicka@gmail.com
@@ -56,12 +56,19 @@ scm_upload_guest: 1000
 
 luci_statistics_collectd_tcpconns_localports: "22 80 443"
 luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear dynamic_dns_updater.sh hostapd nlbwmon ntpd openvpn uhttpd vnstatd"
-luci_statistics_collectd_interface_interfaces: "eth0.2 br-lan tunipv6 wlan0 wlan0-1 wlan0-2 wlan1"
+interfaces:
+  - br-lan
+  - eth0.2
+  - tunipv6
+  - wlan0
+  - wlan0-1
+  - wlan1
+  - wlan1-1
 
 dhcp_hosts:
   - name: andy-phone-wifi
     ip: 192.168.1.2
-    mac: ac:ee:9e:47:04:1a
+    mac: 8c:b8:4a:9a:ca:11
   - name: andy-nb-wifi
     ip: 192.168.1.3
     mac: 94:53:30:34:3e:a7
@@ -74,18 +81,18 @@ dhcp_hosts:
   - name: raspberrypi-wifi
     ip: 192.168.1.6
     mac: dc:a6:32:0e:bd:14
-  - name: revogi-wifi
-    ip: 192.168.1.7
-    mac: b0:f8:93:19:d0:72
+#  - name: revogi-wifi
+#    ip: 192.168.1.7
+#    mac: b0:f8:93:19:d0:72
   - name: alexa-wifi
     ip: 192.168.1.8
     mac: 68:54:fd:76:66:fc
   - name: raspberrypi3-wifi
     ip: 192.168.1.9
     mac: b8:27:eb:ac:e3:42
-  - name: raspberrypi3a-wifi
-    ip: 192.168.1.10
-    mac: b8:27:eb:c0:14:4c
+#  - name: raspberrypi3a-wifi
+#    ip: 192.168.1.10
+#    mac: b8:27:eb:c0:14:4c
   - name: peru-nb-nic
     ip: 192.168.1.130
     mac: 54:e1:ad:b6:ce:c5

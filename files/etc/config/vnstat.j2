@@ -1,0 +1,4 @@
+config vnstat
+{% for interface in interfaces %}
+	list interface '{{ interface }}'
+{% endfor %}
