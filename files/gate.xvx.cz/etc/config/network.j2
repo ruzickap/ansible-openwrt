@@ -5,7 +5,7 @@ config interface 'loopback'
 	option netmask '255.0.0.0'
 
 config globals 'globals'
-	option ula_prefix 'fd4a:8467:4b8e::/48'
+	option ula_prefix 'fdeb:2155:cbc5::/48'
 
 config interface 'lan'
 	option type 'bridge'
@@ -18,6 +18,10 @@ config interface 'lan'
 config interface 'wan'
 	option ifname 'eth0.2'
 	option proto 'dhcp'
+
+config device 'wan_eth0_2_dev'
+	option name 'eth0.2'
+	option macaddr 'b0:be:76:77:9e:65'
 
 config interface 'wan6'
 	option ifname 'eth0.2'
@@ -43,6 +47,8 @@ config switch
 	option name 'switch0'
 	option reset '1'
 	option enable_vlan '1'
+	option ar8xxx_mib_type '0'
+	option ar8xxx_mib_poll_interval '500'
 
 config switch_vlan
 	option device 'switch0'
