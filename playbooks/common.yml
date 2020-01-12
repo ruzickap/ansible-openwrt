@@ -28,6 +28,11 @@
     src: files/{{ inventory_hostname }}/etc/config/network.j2
   tags: network
 
+- name: Install WPA3 compatible packages
+  command: opkg --force-depends --force-maintainer --force-overwrite install hostapd-openssl wpa-supplicant-openssl wpad-openssl
+  args:
+    creates: /usr/lib/opkg/info/wpa-supplicant-openssl.postinst
+
 - name: Configure WiFi
   template:
     dest: /etc/config/wireless
@@ -103,10 +108,11 @@
     content: |
       HISTTIMEFORMAT="|%F %R| "
 
+
 - name: Configure vnstat (/etc/config/vnstat)
-  copy:
+  template:
     dest: /etc/config/vnstat
-    src: files/{{ inventory_hostname }}/etc/config/vnstat
+    src: files/etc/config/vnstat.j2
 
 ############################################
 # Add backup script
@@ -178,7 +184,7 @@
 
 - name: Configure collectd_interface
   command: |
-    uci set luci_statistics.collectd_interface.Interfaces="{{ luci_statistics_collectd_interface_interfaces }}"
+    uci set luci_statistics.collectd_interface.Interfaces="{{ interfaces | join(' ') }}"
   changed_when: false
 
 - name: Configure collectd_ping
