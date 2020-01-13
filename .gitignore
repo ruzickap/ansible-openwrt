@@ -1,5 +1,5 @@
 # pre-commit config file
 .pre-commit-config.yaml
 
-# File with Ansible Vault password
+# Ansible vault password file
 vault-openwrt.password
