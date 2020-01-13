@@ -68,7 +68,7 @@ interfaces:
 dhcp_hosts:
   - name: andy-phone-wifi
     ip: 192.168.1.2
-    mac: 8c:b8:4a:9a:ca:11
+    mac: de:9f:27:dd:94:e6
   - name: andy-nb-wifi
     ip: 192.168.1.3
     mac: 94:53:30:34:3e:a7
