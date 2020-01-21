@@ -1,4 +1,4 @@
-router_firmware: http://downloads.openwrt.org/snapshots/targets/ipq40xx/generic/openwrt-ipq40xx-zyxel_nbg6617-squashfs-sysupgrade.bin
+router_firmware: https://downloads.openwrt.org/releases/19.07.0/targets/ipq40xx/generic/openwrt-19.07.0-ipq40xx-generic-zyxel_nbg6617-squashfs-sysupgrade.bin
 notification_email: ruzickajiri@gmail.com
 
 root_password: !vault |
@@ -48,7 +48,6 @@ interfaces:
   - eth1
   - wlan0
   - wlan1
-  - wlan1-1
 
 transmission_speed_limit_down: 300
 transmission_speed_limit_up: 10
@@ -104,11 +103,11 @@ enable_boot_services:
 adblock_lists:
   - adguard
   - dshield
+  - hphosts
   - malware
   - malwarelist
   - openphish
-  - ransomware
   - reg_cz
-  - urlhaus
+  - spam404
+  - sysctl
   - whocares
-  - zeus
