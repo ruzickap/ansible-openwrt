@@ -4,7 +4,8 @@
 (
 # Wait for network to be fully initialized
 sleep 10
-cat << EOF | sendmail {{ notification_email }}
+sendmail -t << EOF
+To: {{ notification_email }}
 Subject: Reboot {{ inventory_hostname }}
 
 

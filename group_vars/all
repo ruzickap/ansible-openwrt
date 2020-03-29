@@ -2,6 +2,6 @@ network_subnet: 192.168.1.0/24
 dhcp_dns_server: 1.1.1.1
 timezone: CET-1CEST,M3.5.0,M10.5.0/3
 
-smtp_gmail_auth_user: openwrt.email
+smtp_gmail_auth_user: my.user.mbox@gmail.com
 
 domain: "{{ inventory_hostname.split('.')[1:] | join('.') }}"
