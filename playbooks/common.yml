@@ -26,7 +26,7 @@
   template:
     dest: /etc/config/network
     src: files/{{ inventory_hostname }}/etc/config/network.j2
-  tags: network
+    mode: 0600
 
 - name: Install WPA3 compatible packages
   command: opkg --force-depends --force-maintainer --force-overwrite install hostapd-openssl wpa-supplicant-openssl wpad-openssl
@@ -37,16 +37,19 @@
   template:
     dest: /etc/config/wireless
     src: files/{{ inventory_hostname }}/etc/config/wireless.j2
+    mode: 0600
 
 - name: Configure DHCP
   template:
     dest: /etc/config/dhcp
     src: files/{{ inventory_hostname }}/etc/config/dhcp.j2
+    mode: 0600
 
 - name: Configure Firewall
   copy:
     dest: /etc/config/firewall
     src: files/{{ inventory_hostname }}/etc/config/firewall
+    mode: 0600
 
 - name: Create dropbear_rsa_host_key for dropbear (/etc/dropbear/dropbear_rsa_host_key)
   copy:
@@ -58,6 +61,7 @@
   template:
     dest: /etc/dropbear/authorized_keys
     src: files/etc/dropbear/authorized_keys.j2
+    mode: u=rw,g=r,o=r
 
 - name: Install packages
   opkg:
@@ -101,18 +105,20 @@
   file:
     path: /etc/profile.d
     state: directory
+    mode: u=rwx,g=rx,o=rx
 
 - name: Get the history format file (/etc/profile.d/history_format.sh)
   copy:
     dest: /etc/profile.d/history_format.sh
+    mode: u=rw,g=r,o=r
     content: |
       HISTTIMEFORMAT="|%F %R| "
-
 
 - name: Configure vnstat (/etc/config/vnstat)
   template:
     dest: /etc/config/vnstat
     src: files/etc/config/vnstat.j2
+    mode: 0600
 
 ############################################
 # Add backup script
@@ -122,6 +128,7 @@
   file:
     path: "{{ openwrt_backup_directory }}"
     state: directory
+    mode: u=rwx,g=rx,o=rx
 
 - name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
   template:
@@ -150,6 +157,7 @@
   template:
     dest: /etc/rc.local
     src: files/etc/rc.local.j2
+    mode: u=rwx,g=rx,o=rx
 
 ############################################
 # Web server
