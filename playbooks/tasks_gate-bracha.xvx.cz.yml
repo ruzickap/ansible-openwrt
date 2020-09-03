@@ -38,8 +38,9 @@
 - name: Create local credential file for smaba
   delegate_to: localhost
   copy:
-    dest: "{{ lookup('env','HOME') }}/data/{{ inventory_hostname }}-cifs-credentials"
+    dest: "{{ lookup('env','HOME') }}/Documents/secrets/{{ inventory_hostname }}-cifs-credentials"
     content: |
+      [{{ inventory_hostname }}]
       username=root
       password={{ samba_root_password }}
     mode: 0600
