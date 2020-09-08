@@ -1,4 +1,4 @@
-router_firmware: https://downloads.openwrt.org/releases/19.07.0/targets/ipq40xx/generic/openwrt-19.07.0-ipq40xx-generic-zyxel_nbg6617-squashfs-sysupgrade.bin
+router_firmware: https://downloads.openwrt.org/releases/19.07.3/targets/ipq40xx/generic/openwrt-19.07.3-ipq40xx-generic-zyxel_nbg6617-squashfs-sysupgrade.bin
 notification_email: ruzickajiri@gmail.com
 
 root_password: !vault |

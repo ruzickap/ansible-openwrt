@@ -1,4 +1,4 @@
-router_firmware: http://downloads.openwrt.org/releases/19.07.0/targets/ar71xx/generic/openwrt-19.07.0-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
+router_firmware: http://downloads.openwrt.org/releases/19.07.3/targets/ar71xx/generic/openwrt-19.07.3-ar71xx-generic-archer-c7-v5-squashfs-sysupgrade.bin
 notification_email: petr.ruzicka@gmail.com
 
 ddns_cloudflare_username: petr.ruzicka@gmail.com
