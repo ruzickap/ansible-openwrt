@@ -1,5 +1,14 @@
 # Changelog
 
+## [v1.0.1](https://github.com/ruzickap/ansible-openwrt/compare/v1.0.0...v1.0.1) (2020-09-17)
+
+- Update OpenWRT fw images to 19.07.3 [`#6`](https://github.com/ruzickap/ansible-openwrt/pull/6)
+- Add GITHUB_TOKEN to linter and change path for cifs credentials [`#5`](https://github.com/ruzickap/ansible-openwrt/pull/5)
+- Use latest container version of super-linter [`#4`](https://github.com/ruzickap/ansible-openwrt/pull/4)
+- Add super-linter + fix related issues [`#3`](https://github.com/ruzickap/ansible-openwrt/pull/3)
+- Use shell-linter in latest version [`#2`](https://github.com/ruzickap/ansible-openwrt/pull/2)
+- CHANGELOG file update [`#1`](https://github.com/ruzickap/ansible-openwrt/pull/1)
+
 ## v1.0.0 (2020-05-09)
 
 - Add ".release-it.yml" to ".gitignore" [`c8b743f`](https://github.com/ruzickap/ansible-openwrt/commit/c8b743f8b9de4911de873e0fec1cffb96e90ce30)
