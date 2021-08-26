@@ -154,9 +154,20 @@ config rule
 
 # port redirect of remapped ssh port (22222) on wan
 config redirect
-	option name       'Allow-SSH-22222'
-	option src        'wan'
-	option src_dport  '22222'
-	option dest       'lan'
-	option dest_port  '22'
-	option proto      'tcp'
+	option name      'Allow-SSH-22222'
+	option src       'wan'
+	option src_dport '22222'
+	option dest      'lan'
+	option dest_port '22'
+	option proto     'tcp'
+
+# port redirect for RPi and Plex
+config redirect
+	option name      'plex'
+	option target    'DNAT'
+	option src       'wan'
+	option src_dport '32400'
+	option dest      'lan'
+	option dest_port '32400'
+	option proto     'tcp'
+	option dest_ip   '192.168.1.2'
