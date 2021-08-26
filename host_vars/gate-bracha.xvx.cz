@@ -111,3 +111,8 @@ adblock_lists:
   - spam404
   - sysctl
   - whocares
+
+dhcp_hosts:
+  - name: raspberrypi-nic
+    ip: 192.168.1.2
+    mac: e4:5f:01:25:e4:fa

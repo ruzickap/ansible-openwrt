@@ -39,3 +39,10 @@ config odhcpd 'odhcpd'
 	option leasefile '/tmp/hosts/odhcpd'
 	option leasetrigger '/usr/sbin/odhcpd-update'
 	option loglevel '4'
+{% for dhcp_host in dhcp_hosts %}
+
+config host
+	option name '{{ dhcp_host.name }}'
+	option ip '{{ dhcp_host.ip }}'
+	option mac '{{ dhcp_host.mac }}'
+{% endfor %}
