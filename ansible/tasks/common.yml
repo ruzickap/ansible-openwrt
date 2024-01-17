@@ -1,90 +1,90 @@
 # - name: Upgrade router firmware (removes all settings)
-#   raw: sysupgrade -n {{ router_firmware }}
+#   ansible.builtin.raw: sysupgrade -n {{ router_firmware }}
 
 # - name: Wait for reboot
 #   wait_for_connection:
 #     delay: 60
 
 - name: Install Python
-  raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging )
-  changed_when: False
+  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging )
+  changed_when: false
 
 - name: Update opkg repository and install python3-light if not already installed
-  opkg:
+  community.general.opkg:
     name: python3-light
-    update_cache: yes
+    update_cache: true
 
 - name: Configure hostname
-  command: uci set system.@system[0].hostname={{ inventory_hostname_short }}
+  ansible.builtin.command: uci set system.@system[0].hostname={{ inventory_hostname_short }}
   changed_when: false
 
 - name: Configure timezone
-  command: uci set system.@system[0].timezone={{ timezone }}
+  ansible.builtin.command: uci set system.@system[0].timezone={{ timezone }}
   changed_when: false
 
 - name: Configure networks
-  template:
+  ansible.builtin.template:
     dest: /etc/config/network
     src: files/{{ inventory_hostname }}/etc/config/network.j2
-    mode: 0600
+    mode: u=rw,g=,o=
 
 - name: Install WPA3 compatible packages
-  command: opkg --force-depends --force-maintainer --force-overwrite install hostapd-openssl wpa-supplicant-openssl wpad-openssl
+  ansible.builtin.command: opkg --force-depends --force-maintainer --force-overwrite install hostapd-openssl wpa-supplicant-openssl wpad-openssl
   args:
     creates: /usr/lib/opkg/info/wpa-supplicant-openssl.postinst
 
 - name: Configure WiFi
-  template:
+  ansible.builtin.template:
     dest: /etc/config/wireless
     src: files/{{ inventory_hostname }}/etc/config/wireless.j2
-    mode: 0600
+    mode: u=rw,g=,o=
 
 - name: Configure DHCP
-  template:
+  ansible.builtin.template:
     dest: /etc/config/dhcp
     src: files/{{ inventory_hostname }}/etc/config/dhcp.j2
-    mode: 0600
+    mode: u=rw,g=,o=
 
 - name: Configure Firewall
-  copy:
+  ansible.builtin.copy:
     dest: /etc/config/firewall
     src: files/{{ inventory_hostname }}/etc/config/firewall
-    mode: 0600
+    mode: u=rw,g=,o=
 
 - name: Create dropbear_rsa_host_key for dropbear (/etc/dropbear/dropbear_rsa_host_key)
-  copy:
+  ansible.builtin.copy:
     dest: /etc/dropbear/dropbear_rsa_host_key
     src: files/{{ inventory_hostname }}/etc/dropbear/dropbear_rsa_host_key
-    mode: 0600
+    mode: u=rw,g=,o=
 
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
-  template:
+  ansible.builtin.template:
     dest: /etc/dropbear/authorized_keys
     src: files/etc/dropbear/authorized_keys.j2
     mode: u=rw,g=r,o=r
 
 - name: Install packages
-  opkg:
+  community.general.opkg:
     name: "{{ item }}"
   loop: "{{ packages }}"
   register: result
   until: result is succeeded
 
 - name: Set root password
-  replace:
+  ansible.builtin.replace:
     path: /etc/shadow
     regexp: "^root:([^:]*):"
     replace: "root:{{ root_password | string | password_hash('md5') }}:"
   changed_when: false
 
 - name: Change root shell to /bin/bash
-  replace:
+  ansible.builtin.replace:
     path: /etc/passwd
     regexp: "^root:(.*):/bin/ash"
     replace: "root:\\1:/bin/bash"
 
 - name: Add nice prompt for root user
-  blockinfile:
+  ansible.builtin.blockinfile:
     dest: /etc/profile
     block: |
       ps1_prompt() {
@@ -102,42 +102,42 @@
       PROMPT_COMMAND="ps1_prompt;$PROMPT_COMMAND"
 
 - name: Create /etc/profile.d directory
-  file:
+  ansible.builtin.file:
     path: /etc/profile.d
     state: directory
     mode: u=rwx,g=rx,o=rx
 
 - name: Get the history format file (/etc/profile.d/history_format.sh)
-  copy:
+  ansible.builtin.copy:
     dest: /etc/profile.d/history_format.sh
     mode: u=rw,g=r,o=r
     content: |
       HISTTIMEFORMAT="|%F %R| "
 
 - name: Configure vnstat (/etc/config/vnstat)
-  template:
+  ansible.builtin.template:
     dest: /etc/config/vnstat
     src: files/etc/config/vnstat.j2
-    mode: 0600
+    mode: u=rw,g=,o=
 
 ############################################
 # Add backup script
 ############################################
 
 - name: Create backup directory
-  file:
+  ansible.builtin.file:
     path: "{{ openwrt_backup_directory }}"
     state: directory
     mode: u=rwx,g=rx,o=rx
 
 - name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
-  template:
+  ansible.builtin.template:
     dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
     src: files/etc/init.d/collectd_nlbwmon_vnstat-backup.j2
-    mode: 0755
+    mode: u=rwx,g=rx,o=rx
 
 - name: Configure to run collectd_nlbwmon_vnstat-backup daily
-  cron:
+  ansible.builtin.cron:
     name: "Backup collectd nlbwmon vnstat databases"
     minute: "0"
     hour: "2"
@@ -148,13 +148,13 @@
 ############################################
 
 - name: Configure ssmtp
-  template:
+  ansible.builtin.template:
     dest: /etc/ssmtp/ssmtp.conf
     src: files/etc/ssmtp/ssmtp.conf.j2
-    mode: 0600
+    mode: u=rw,g=,o=
 
 - name: Reboot notification
-  template:
+  ansible.builtin.template:
     dest: /etc/rc.local
     src: files/etc/rc.local.j2
     mode: u=rwx,g=rx,o=rx
@@ -164,7 +164,7 @@
 ############################################
 
 - name: Remove old ssl certificates /etc/{uhttpd.crt,uhttpd.key} to let them autogenerated after uhttp starts
-  file:
+  ansible.builtin.file:
     path: "{{ item }}"
     state: absent
   loop:
@@ -172,7 +172,7 @@
     - /etc/uhttpd.key
 
 - name: Configure ssl for uhttpd
-  shell: |
+  ansible.builtin.shell: |
     uci set uhttpd.defaults.country=cz &&
     uci set uhttpd.defaults.commonname={{ inventory_hostname }} &&
     uci set uhttpd.defaults.location=CZ &&
@@ -181,52 +181,52 @@
   changed_when: false
 
 - name: Configure watchcat
-  command: uci set system.@watchcat[0].period=5m
+  ansible.builtin.command: uci set system.@watchcat[0].period=5m
   changed_when: false
 
 - name: Configure collectd_dns
-  shell: |
+  ansible.builtin.shell: |
     uci set luci_statistics.collectd_dns.enable=1 &&
     uci set luci_statistics.collectd_dns.Interfaces=any
   changed_when: false
 
 - name: Configure collectd_interface
-  command: |
+  ansible.builtin.command: |
     uci set luci_statistics.collectd_interface.Interfaces="{{ interfaces | join(' ') }}"
   changed_when: false
 
 - name: Configure collectd_ping
-  shell: |
+  ansible.builtin.shell: |
     uci set luci_statistics.collectd_processes.enable=1 &&
     uci set luci_statistics.collectd_processes.Processes="{{ luci_statistics_collectd_processes_processes }}"
   changed_when: false
 
 - name: Configure collectd_ping
-  shell: |
+  ansible.builtin.shell: |
     uci set luci_statistics.collectd_ping.enable=1 &&
     uci set luci_statistics.collectd_ping.Hosts=www.google.com
   changed_when: false
 
 - name: Configure collectd_rrdtool
-  shell: |
+  ansible.builtin.shell: |
     uci set luci_statistics.collectd_rrdtool.CacheTimeout=120 &&
     uci set luci_statistics.collectd_rrdtool.CacheFlush=900
   changed_when: false
 
 - name: Configure collectd_tcpconns
-  shell: |
+  ansible.builtin.shell: |
     uci set luci_statistics.collectd_tcpconns.LocalPorts="{{ luci_statistics_collectd_tcpconns_localports }}" &&
     uci set luci_statistics.collectd_tcpconns.enable=1
   changed_when: false
 
 - name: Configure collectd_uptime
-  command: |
+  ansible.builtin.command: |
     uci set luci_statistics.collectd_uptime.enable=1
   changed_when: false
 
 - name: Enable services on boot
-  openwrt_init:
+  community.general.openwrt_init:
     name: "{{ item }}"
     state: started
-    enabled: yes
+    enabled: true
   loop: "{{ enable_boot_services }}"

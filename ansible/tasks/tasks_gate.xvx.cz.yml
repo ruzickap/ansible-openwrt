@@ -1,25 +1,28 @@
 - name: Configure alerting for dnsmasq (notify when there is new MAC on the network)
-  lineinfile:
+  ansible.builtin.lineinfile:
     path: /etc/dnsmasq.conf
-    line: 'dhcp-script=/etc/dnsmasq-script.sh'
+    line: "dhcp-script=/etc/dnsmasq-script.sh"
 
 - name: Copy the dnsmasq-script.sh to /etc/
-  template:
+  ansible.builtin.template:
     dest: /etc/dnsmasq-script.sh
     src: files/{{ inventory_hostname }}/etc/dnsmasq-script.sh.j2
-    mode: 0755
+    mode: u=rwx,g=rx,o=rx
 
 - name: Configure ddns
-  template:
+  ansible.builtin.template:
     dest: /etc/config/ddns
     src: files/{{ inventory_hostname }}/etc/config/ddns.j2
+    mode: u=rw,g=r,o=r
 
 - name: Configure OpenVPN (/etc/config/openvpn)
-  copy:
+  ansible.builtin.copy:
     dest: /etc/config/openvpn
     src: files/{{ inventory_hostname }}/etc/config/openvpn
+    mode: u=rw,g=r,o=r
 
 - name: Put OpenVPN VPS Free configuration to /etc/openvpn/
-  copy:
+  ansible.builtin.copy:
     dest: /etc/openvpn/ipv6tun-petrruzicka1.ovpn
     src: files/{{ inventory_hostname }}/etc/openvpn/ipv6tun-petrruzicka1.ovpn
+    mode: u=rw,g=,o=
