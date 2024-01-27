@@ -9,8 +9,7 @@ ANSIBLE_ANSIBLE_LINT_CONFIG_FILE: ansible/.ansible-lint
 BASH_SHFMT_ARGUMENTS: --indent 2 --space-redirects
 
 DISABLE_LINTERS:
-  - REPOSITORY_DEVSKIM
-  - REPOSITORY_KICS
+  - MARKDOWN_MARKDOWN_LINK_CHECK # Using lychee instead
   - SPELL_CSPELL
 
 # Remove: To receive reports as email, please set variable EMAIL_REPORTER_EMAIL
@@ -23,11 +22,17 @@ FILTER_REGEX_EXCLUDE: CHANGELOG.md
 FORMATTERS_DISABLE_ERRORS: false
 
 MARKDOWN_MARKDOWNLINT_CONFIG_FILE: .markdownlint.yml
+MARKDOWN_MARKDOWNLINT_FILTER_REGEX_EXCLUDE: CHANGELOG.md
 
 # Remove initial MegaLinter graphic
 PRINT_ALPACA: false
 
 # Disable creating report directory
 REPORT_OUTPUT_FOLDER: none
+
+TERRAFORM_TFLINT_UNSECURED_ENV_VARIABLES:
+  - GITHUB_TOKEN
+
+TYPESCRIPT_PRETTIER_ARGUMENTS: --html-whitespace-sensitivity=ignore
 
 VALIDATE_ALL_CODEBASE: true
