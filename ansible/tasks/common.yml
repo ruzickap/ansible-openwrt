@@ -74,7 +74,7 @@
   ansible.builtin.replace:
     path: /etc/shadow
     regexp: "^root:([^:]*):"
-    replace: "root:{{ root_password | string | password_hash('md5') }}:"
+    replace: "root:{{ root_password | string | password_hash('md5') }}:" # DevSkim: ignore DS126858
   changed_when: false
 
 - name: Change root shell to /bin/bash

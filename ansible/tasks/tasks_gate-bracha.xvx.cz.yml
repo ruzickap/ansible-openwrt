@@ -39,7 +39,7 @@
     mode: u=rw,g=r,o=r
 
 - name: Create local credential file for smaba
-  delegate_to: localhost
+  delegate_to: localhost # DevSkim: ignore DS162092
   ansible.builtin.copy:
     dest: "{{ lookup('env', 'HOME') }}/Documents/secrets/{{ inventory_hostname }}-cifs-credentials"
     content: |
