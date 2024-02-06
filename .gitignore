@@ -2,4 +2,7 @@
 .pre-commit-config.yaml
 
 # Ansible vault password file
-vault-openwrt.password
+vault-*.password
+
+# Lychee cache
+.lycheecache
