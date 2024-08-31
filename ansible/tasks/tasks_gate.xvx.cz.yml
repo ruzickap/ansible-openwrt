@@ -1,28 +1,55 @@
-- name: Configure alerting for dnsmasq (notify when there is new MAC on the network)
-  ansible.builtin.lineinfile:
-    path: /etc/dnsmasq.conf
-    line: "dhcp-script=/etc/dnsmasq-script.sh"
+- name: Configure cloudflared
+  ansible.builtin.shell: |
+    uci set cloudflared.@cloudflared[0].enabled=1 &&
+    uci set cloudflared.@cloudflared[0].token={{ cloudflare_api_key }} &&
+    uci set cloudflared.@cloudflared[0].tag=fqdn={{ inventory_hostname }}
+  changed_when: false
 
-- name: Copy the dnsmasq-script.sh to /etc/
-  ansible.builtin.template:
-    dest: /etc/dnsmasq-script.sh
-    src: files/{{ inventory_hostname }}/etc/dnsmasq-script.sh.j2
-    mode: u=rwx,g=rx,o=rx
+############################################
+# Homepage
+############################################
 
-- name: Configure ddns
-  ansible.builtin.template:
-    dest: /etc/config/ddns
-    src: files/{{ inventory_hostname }}/etc/config/ddns.j2
+- name: Create Luci ACL for Homepage OpenWRT widget
+  ansible.builtin.copy:
+    dest: /usr/share/rpcd/acl.d/homepage.json
+    src: files/{{ inventory_hostname }}/usr/share/rpcd/acl.d/homepage.json
     mode: u=rw,g=r,o=r
 
-- name: Configure OpenVPN (/etc/config/openvpn)
-  ansible.builtin.copy:
-    dest: /etc/config/openvpn
-    src: files/{{ inventory_hostname }}/etc/config/openvpn
+- name: Allow Homepage OpenWRT widget to access Luci via RPC
+  ansible.builtin.template:
+    dest: /etc/config/rpcd
+    src: files/{{ inventory_hostname }}/etc/config/rpcd.j2
     mode: u=rw,g=r,o=r
+  no_log: true
 
-- name: Put OpenVPN VPS Free configuration to /etc/openvpn/
-  ansible.builtin.copy:
-    dest: /etc/openvpn/ipv6tun-petrruzicka1.ovpn
-    src: files/{{ inventory_hostname }}/etc/openvpn/ipv6tun-petrruzicka1.ovpn
+############################################
+# vsftpd
+############################################
+
+- name: Configure vfsftpd (/etc/vsftpd.conf)
+  community.general.ini_file:
+    path: /etc/vsftpd.conf
+    no_extra_spaces: true
+    option: "{{ item.option }}"
+    value: "{{ item.value }}"
     mode: u=rw,g=,o=
+  loop:
+    - option: anon_root
+      value: "{{ usb_disk_mount_path }}/media/"
+    - option: write_enable
+      value: "NO"
+    - option: anonymous_enable
+      value: "YES"
+    - option: syslog_enable
+      value: "YES"
+    - option: local_enable
+      value: "NO"
+    - option: hide_ids
+      value: "YES"
+
+- name: Chnage ftp user home directory
+  ansible.builtin.replace:
+    path: /etc/passwd
+    regexp: "^ftp:\\*:55:55:ftp:/home/ftp:/bin/false"
+    replace: "ftp:*:55:55:ftp:{{ usb_disk_mount_path }}/media:/bin/false"
+  changed_when: false

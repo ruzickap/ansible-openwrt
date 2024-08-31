@@ -49,10 +49,10 @@ interfaces:
   - wlan0
   - wlan1
 
-transmission_speed_limit_down: 300
+transmission_speed_limit_down: 3000
 transmission_speed_limit_up: 10
 
-packages:
+openwrt_packages:
   - adblock
   - bash
   - bind-dig

@@ -1,61 +1,41 @@
+
 config interface 'loopback'
-	option ifname 'lo'
+	option device 'lo'
 	option proto 'static'
 	option ipaddr '127.0.0.1'
 	option netmask '255.0.0.0'
 
 config globals 'globals'
-	option ula_prefix 'fdeb:2155:cbc5::/48'
+	option ula_prefix 'fdbf:ff49:6877::/48'
+	option packet_steering '1'
+
+config device
+	option name 'br-lan'
+	option type 'bridge'
+	list ports 'lan1'
+	list ports 'lan2'
+	list ports 'lan3'
 
 config interface 'lan'
-	option type 'bridge'
-	option ifname 'eth0.1'
+	option device 'br-lan'
 	option proto 'static'
-	option ipaddr '{{ network_subnet | ipaddr(1) | regex_replace('^([^/]*).*', '\\1') }}'
-	option netmask '{{ network_subnet | ipaddr('netmask') }}'
+	option ipaddr '{{ network_subnet | ansible.utils.ipaddr(1) | regex_replace('^([^/]*).*', '\\1') }}'
+	option netmask '{{ network_subnet | ansible.utils.ipaddr('netmask') }}'
 	option ip6assign '60'
 
 config interface 'wan'
-	option ifname 'eth0.2'
+	option device 'wan'
 	option proto 'dhcp'
 
-config device 'wan_eth0_2_dev'
-	option name 'eth0.2'
-	option macaddr 'b0:be:76:77:9e:65'
-
 config interface 'wan6'
-	option ifname 'eth0.2'
+	option device 'wan'
 	option proto 'dhcpv6'
+
+config device 'guest_dev'
+	option type 'bridge'
+	option name 'br-guest'
 
 config interface 'guest'
 	option proto 'static'
-	# option ipaddr '{{ guest_network_subnet | ipaddr(1) }}'
-	option ipaddr '172.16.254.1'
-	option netmask '{{ guest_network_subnet | ipaddr('netmask') }}'
-
-config interface 'wwan'
-	option proto 'dhcp'
-
-config interface 'ipv6tun'
-	option ifname 'tunipv6'
-	option proto 'static'
-	option ip6addr '2a03:3b40:200::290/64'
-	option ip6gw '2a03:3b40:200::200'
-	option ip6prefix '2a03:3b40:290::/48'
-
-config switch
-	option name 'switch0'
-	option reset '1'
-	option enable_vlan '1'
-	option ar8xxx_mib_type '0'
-	option ar8xxx_mib_poll_interval '500'
-
-config switch_vlan
-	option device 'switch0'
-	option vlan '1'
-	option ports '2 3 4 5 0t'
-
-config switch_vlan
-	option device 'switch0'
-	option vlan '2'
-	option ports '1 0t'
+	option device 'br-guest'
+	option ipaddr '{{ guest_network_subnet | ansible.utils.ipaddr(1) }}'

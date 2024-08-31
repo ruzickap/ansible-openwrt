@@ -1,6 +1,7 @@
 - name: Run all
   hosts: all
   gather_facts: false
+  force_handlers: true
 
   tasks:
     - name: Include tasks
@@ -10,5 +11,6 @@
       ansible.builtin.include_tasks: tasks/tasks_{{ inventory_hostname }}.yml
 
     - name: UCI commit
-      ansible.builtin.command: uci commit
+      ansible.builtin.command: |
+        uci commit
       changed_when: false

@@ -11,80 +11,81 @@ EOF
 START=55
 STOP=15
 
-vnstat_option() {
-        sed -ne "s/^[[:space:]]*$1[[:space:]]*['\"]\([^'\"]*\)['\"].*/\1/p" /etc/vnstat.conf
-}
-
 BACKUP_DIR="{{ openwrt_backup_directory }}"
 LOGGER_TAG=collectd_nlbwmon_vnstat-backup
-VNSTAT_DIR="$(vnstat_option DatabaseDir)"
-VNSTAT_DIR_BASENAME="$(basename $VNSTAT_DIR)"
+VNSTAT_DIR="$(awk -F\" '/DatabaseDir/ {print $2}' /etc/vnstat.conf)"
+VNSTAT_DIR_BASENAME="$(basename "${VNSTAT_DIR}")"
 COLLECTD_DIR="$(uci get luci_statistics.collectd_rrdtool.DataDir)"
-COLLECTD_DIR_BASENAME="$(basename $COLLECTD_DIR)"
+COLLECTD_DIR_BASENAME="$(basename "${COLLECTD_DIR}")"
 NLBWMON_DIR="$(uci get nlbwmon.@nlbwmon[0].database_directory)"
-NLBWMON_DIR_BASENAME="$(basename $NLBWMON_DIR)"
+NLBWMON_DIR_BASENAME="$(basename "${NLBWMON_DIR}")"
 
 backup_database() {
-        echo -n "`date` - DB backup:" >> $BACKUP_DIR/log
+        echo -n "$(date) - Backup:" >> "${BACKUP_DIR}/log"
 
-        if [ ! -d $COLLECTD_DIR ]; then
-                logger -t $LOGGER_TAG -p err "cannot backup, data directory $COLLECTD_DIR does not exist (yet)"
+        if [ ! -d "${COLLECTD_DIR}" ]; then
+                logger -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${COLLECTD_DIR} does not exist (yet)"
         else
-                logger -t $LOGGER_TAG -p info "backing up collectd database"
-                echo -n " collectd" >> $BACKUP_DIR/log
-                rsync -a --delete $COLLECTD_DIR $BACKUP_DIR/
+                logger -t "${LOGGER_TAG}" -p info "backing up collectd database"
+                echo -n " collectd" >> "${BACKUP_DIR}/log"
+                rsync -a --delete "${COLLECTD_DIR}" "${BACKUP_DIR}/"
         fi
 
-        if [ ! -d $NLBWMON_DIR ]; then
-                logger -t $LOGGER_TAG -p err "cannot backup, data directory $NLBWMON_DIR does not exist (yet)"
+        if [ ! -d "${NLBWMON_DIR}" ]; then
+                logger -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${NLBWMON_DIR} does not exist (yet)"
         else
-                logger -t $LOGGER_TAG -p info "backing up nlbwmon database"
-                echo -n " nlbwmon" >> $BACKUP_DIR/log
-                rsync -a --delete $NLBWMON_DIR $BACKUP_DIR/
+                logger -t "${LOGGER_TAG}" -p info "backing up nlbwmon database"
+                echo -n " nlbwmon" >> "${BACKUP_DIR}/log"
+                rsync -a --delete "${NLBWMON_DIR}" "${BACKUP_DIR}/"
         fi
 
-        if [ ! -d $VNSTAT_DIR ]; then
-                logger -t $LOGGER_TAG -p err "cannot backup, data directory $VNSTAT_DIR does not exist (yet)"
+        if [ ! -d "${VNSTAT_DIR}" ]; then
+                logger -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${VNSTAT_DIR} does not exist (yet)"
         else
-                logger -t $LOGGER_TAG -p info "backing up vnstat database"
-                echo -n " vnstat" >> $BACKUP_DIR/log
-                rsync -a --delete $VNSTAT_DIR $BACKUP_DIR/
+                logger -t "${LOGGER_TAG}" -p info "backing up vnstat database"
+                echo -n " vnstat" >> "${BACKUP_DIR}/log"
+                rsync -a --delete "${VNSTAT_DIR}" "${BACKUP_DIR}/"
         fi
 
-        echo >> $BACKUP_DIR/log
+        echo >> "${BACKUP_DIR}/log"
 }
 
 restore_database() {
-        echo -n "`date` - DB restore:" >> $BACKUP_DIR/log
+        echo -n "$(date) - Restore:" >> "${BACKUP_DIR}/log"
 
-        if [ ! -d "$BACKUP_DIR/$COLLECTD_DIR_BASENAME" ]; then
-                logger -t $LOGGER_TAG -p err "cannot restore, backup file $BACKUP_DIR/$COLLECTD_DIR_BASENAME does not exist (yet)"
+        if [ ! -d "${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}" ]; then
+                logger -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME} does not exist (yet)"
         else
-                logger -t $LOGGER_TAG -p info 'restoring database from $BACKUP_DIR/$COLLECTD_DIR_BASENAME'
-                echo -n " collectd" >> $BACKUP_DIR/log
-                [ ! -d $COLLECTD_DIR ] && mkdir $COLLECTD_DIR
-                rsync -a --delete $BACKUP_DIR/$COLLECTD_DIR_BASENAME/ $COLLECTD_DIR/
+                logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}"
+                echo -n " collectd" >> "${BACKUP_DIR}/log"
+                [ ! -d "${COLLECTD_DIR}" ] && mkdir "${COLLECTD_DIR}"
+                rsync -a --delete "${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}/" "${COLLECTD_DIR}/"
         fi
 
-        if [ ! -d "$BACKUP_DIR/$NLBWMON_DIR_BASENAME" ]; then
-                logger -t $LOGGER_TAG -p err "cannot restore, backup file $BACKUP_DIR/$NLBWMON_DIR_BASENAME does not exist (yet)"
+        if [ ! -d "${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}" ]; then
+                logger -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME} does not exist (yet)"
         else
-                logger -t $LOGGER_TAG -p info 'restoring database from $BACKUP_DIR/$NLBWMON_DIR_BASENAME'
-                echo -n " nlbwmon" >> $BACKUP_DIR/log
-                [ ! -d $NLBWMON_DIR ] && mkdir $NLBWMON_DIR
-                rsync -a --delete $BACKUP_DIR/$NLBWMON_DIR_BASENAME/ $NLBWMON_DIR/
+                logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}"
+                echo -n " nlbwmon" >> "${BACKUP_DIR}/log"
+                [ ! -d "${NLBWMON_DIR}" ] && mkdir "${NLBWMON_DIR}"
+                rsync -a --delete "${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}/" "${NLBWMON_DIR}/"
         fi
 
-        if [ ! -d "$BACKUP_DIR/$VNSTAT_DIR_BASENAME" ]; then
-                logger -t $LOGGER_TAG -p err "cannot restore, backup file $BACKUP_DIR/$VNSTAT_DIR_BASENAME does not exist (yet)"
+        if [ ! -d "${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}" ]; then
+                logger -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME} does not exist (yet)"
         else
-                logger -t $LOGGER_TAG -p info 'restoring database from $BACKUP_DIR/$VNSTAT_DIR_BASENAME'
-                echo -n " vnstat" >> $BACKUP_DIR/log
-                [ ! -d $VNSTAT_DIR ] && mkdir $VNSTAT_DIR
-                rsync -a --delete $BACKUP_DIR/$VNSTAT_DIR_BASENAME/ $VNSTAT_DIR/
+                logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}"
+                echo -n " vnstat" >> "${BACKUP_DIR}/log"
+                [ ! -d "${VNSTAT_DIR}" ] && mkdir "${VNSTAT_DIR}"
+                rsync -a --delete "${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}/" "${VNSTAT_DIR}/"
         fi
 
-        echo >> $BACKUP_DIR/log
+        echo >> "${BACKUP_DIR}/log"
+}
+
+# "reloaded" is a workaround to force the service to restore the data from the backup called when running on freshly installed router
+reload() {
+        restore_database
 }
 
 start() {

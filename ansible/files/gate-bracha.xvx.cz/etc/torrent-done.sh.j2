@@ -1,8 +1,0 @@
-#!/bin/sh
-
-cat << EOF | sendmail {{ notification_email }}
-Subject: $TR_TORRENT_NAME finished.
-
-
-Transmission finished downloading \"$TR_TORRENT_NAME\" on $TR_TIME_LOCALTIME
-EOF
