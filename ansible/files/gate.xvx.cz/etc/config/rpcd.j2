@@ -1,0 +1,14 @@
+config rpcd
+	option socket /var/run/ubus/ubus.sock
+	option timeout 30
+
+config login
+	option username 'root'
+	option password '$p$root'
+	list read '*'
+	list write '*'
+
+config login
+    option username 'homepage'
+    option password '{{ luci_homepage_openwrt_widget_password_hash }}'
+    list read 'homepage'

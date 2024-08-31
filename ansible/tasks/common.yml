@@ -6,43 +6,38 @@
 #     delay: 60
 
 - name: Install Python
-  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging )
+  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging python3-urllib )
   changed_when: false
 
-- name: Update opkg repository and install python3-light if not already installed
-  community.general.opkg:
-    name: python3-light
-    update_cache: true
-
 - name: Configure hostname
-  ansible.builtin.command: uci set system.@system[0].hostname={{ inventory_hostname_short }}
+  ansible.builtin.command: |
+    uci set system.@system[0].hostname={{ inventory_hostname_short }}
   changed_when: false
 
 - name: Configure timezone
-  ansible.builtin.command: uci set system.@system[0].timezone={{ timezone }}
+  ansible.builtin.command: |
+    uci set system.@system[0].timezone={{ timezone }}
   changed_when: false
+
+- name: Create dropbear_*_host_key for dropbear
+  ansible.builtin.copy:
+    dest: /etc/dropbear/{{ item }}
+    src: files/{{ inventory_hostname }}/etc/dropbear/{{ item }}
+    mode: u=rw,g=,o=
+  loop:
+    - dropbear_ed25519_host_key
+    - dropbear_rsa_host_key
+
+- name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
+  ansible.builtin.template:
+    dest: /etc/dropbear/authorized_keys
+    src: files/etc/dropbear/authorized_keys.j2
+    mode: u=rw,g=,o=
 
 - name: Configure networks
   ansible.builtin.template:
     dest: /etc/config/network
     src: files/{{ inventory_hostname }}/etc/config/network.j2
-    mode: u=rw,g=,o=
-
-- name: Install WPA3 compatible packages
-  ansible.builtin.command: opkg --force-depends --force-maintainer --force-overwrite install hostapd-openssl wpa-supplicant-openssl wpad-openssl
-  args:
-    creates: /usr/lib/opkg/info/wpa-supplicant-openssl.postinst
-
-- name: Configure WiFi
-  ansible.builtin.template:
-    dest: /etc/config/wireless
-    src: files/{{ inventory_hostname }}/etc/config/wireless.j2
-    mode: u=rw,g=,o=
-
-- name: Configure DHCP
-  ansible.builtin.template:
-    dest: /etc/config/dhcp
-    src: files/{{ inventory_hostname }}/etc/config/dhcp.j2
     mode: u=rw,g=,o=
 
 - name: Configure Firewall
@@ -51,24 +46,11 @@
     src: files/{{ inventory_hostname }}/etc/config/firewall
     mode: u=rw,g=,o=
 
-- name: Create dropbear_rsa_host_key for dropbear (/etc/dropbear/dropbear_rsa_host_key)
-  ansible.builtin.copy:
-    dest: /etc/dropbear/dropbear_rsa_host_key
-    src: files/{{ inventory_hostname }}/etc/dropbear/dropbear_rsa_host_key
-    mode: u=rw,g=,o=
-
-- name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
+- name: Configure WiFi
   ansible.builtin.template:
-    dest: /etc/dropbear/authorized_keys
-    src: files/etc/dropbear/authorized_keys.j2
-    mode: u=rw,g=r,o=r
-
-- name: Install packages
-  community.general.opkg:
-    name: "{{ item }}"
-  loop: "{{ packages }}"
-  register: result
-  until: result is succeeded
+    dest: /etc/config/wireless
+    src: files/{{ inventory_hostname }}/etc/config/wireless.j2
+    mode: u=rw,g=,o=
 
 - name: Set root password
   ansible.builtin.replace:
@@ -76,6 +58,19 @@
     regexp: "^root:([^:]*):"
     replace: "root:{{ root_password | string | password_hash('md5') }}:" # DevSkim: ignore DS126858
   changed_when: false
+
+- name: Install packages
+  community.general.opkg:
+    name: "{{ openwrt_packages | join(',') }}"
+    update_cache: true
+  register: result
+  until: result is succeeded
+
+- name: Configure DHCP
+  ansible.builtin.template:
+    dest: /etc/config/dhcp
+    src: files/{{ inventory_hostname }}/etc/config/dhcp.j2
+    mode: u=rw,g=,o=
 
 - name: Change root shell to /bin/bash
   ansible.builtin.replace:
@@ -120,6 +115,98 @@
     src: files/etc/config/vnstat.j2
     mode: u=rw,g=,o=
 
+- name: Configure watchcat
+  ansible.builtin.command: |
+    uci set watchcat.@watchcat[0].period=5m
+  changed_when: false
+
+- name: Enable prometheus to liston on lan
+  ansible.builtin.command: |
+    uci set prometheus-node-exporter-lua.@prometheus-node-exporter-lua[0].listen_interface=lan
+  changed_when: false
+
+- name: Enable hd-idle
+  ansible.builtin.command: |
+    uci set hd-idle.@hd-idle[-1].enabled=1
+  changed_when: false
+
+- name: Luci statistics (/etc/config/luci_statistics)
+  ansible.builtin.template:
+    dest: /etc/config/luci_statistics
+    src: files/etc/config/luci_statistics.j2
+    mode: u=rw,g=r,o=r
+
+############################################
+# Configure msmtp + email notifications
+############################################
+
+- name: Configure msmtp
+  ansible.builtin.template:
+    dest: /etc/msmtprc
+    src: files/etc/msmtprc.j2
+    mode: u=rw,g=,o=
+
+- name: Reboot notification
+  ansible.builtin.template:
+    dest: /etc/rc.local
+    src: files/etc/rc.local.j2
+    mode: u=rwx,g=rx,o=rx
+
+############################################
+# USB disk
+############################################
+
+- name: Configure attached block device {{ usb_disk_device }}
+  ansible.builtin.template:
+    dest: /etc/config/fstab
+    src: files/{{ inventory_hostname }}/etc/config/fstab.j2
+    mode: u=rw,g=r,o=r
+
+- name: Create directory {{ usb_disk_mount_path }}
+  ansible.builtin.file:
+    path: "{{ usb_disk_mount_path }}"
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
+- name: Check the mounted disks
+  ansible.builtin.command: |
+    cat /proc/mounts
+  changed_when: false
+  register: mount_output
+
+- name: Create file usb_disk_mount_path/USB_DISK_NOT_PRESENT if usb_disk_device_1 is not mounted
+  ansible.builtin.file:
+    path: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
+    state: touch
+    mode: u=rw,g=r,o=r
+  when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+- name: Mount USB disk
+  ansible.builtin.command: |
+    /sbin/block mount
+  register: block_mount
+  changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
+  when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+- name: Create "media" directories on the disk
+  ansible.builtin.file:
+    path: "{{ usb_disk_mount_path }}/{{ item.name }}"
+    state: directory
+    owner: ftp
+    group: ftp
+    mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
+  loop:
+    - name: media
+      mode: u=rx,g=rx,o=rx
+    - name: media/movies
+    - name: media/music
+
+- name: Allow access to media using http (uhttpd)
+  ansible.builtin.file:
+    src: "{{ usb_disk_mount_path }}/media"
+    dest: /www/media
+    state: link
+
 ############################################
 # Add backup script
 ############################################
@@ -140,93 +227,42 @@
   ansible.builtin.cron:
     name: "Backup collectd nlbwmon vnstat databases"
     minute: "0"
-    hour: "2"
+    hour: "3"
     job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
+  notify: collectd_nlbwmon_vnstat_backup_cron
 
 ############################################
-# Configure ssmtp + email notifications
+# Transmission
 ############################################
 
-- name: Configure ssmtp
+- name: Configure transmission
   ansible.builtin.template:
-    dest: /etc/ssmtp/ssmtp.conf
-    src: files/etc/ssmtp/ssmtp.conf.j2
-    mode: u=rw,g=,o=
+    dest: /etc/config/transmission
+    src: files/etc/config/transmission.j2
+    mode: u=rw,g=r,o=r
 
-- name: Reboot notification
+- name: Install transmission torrent done smtp notification script
   ansible.builtin.template:
-    dest: /etc/rc.local
-    src: files/etc/rc.local.j2
+    dest: /etc/torrent-done.sh
+    src: files/etc/torrent-done.sh.j2
     mode: u=rwx,g=rx,o=rx
 
-############################################
-# Web server
-############################################
-
-- name: Remove old ssl certificates /etc/{uhttpd.crt,uhttpd.key} to let them autogenerated after uhttp starts
-  ansible.builtin.file:
-    path: "{{ item }}"
-    state: absent
-  loop:
-    - /etc/uhttpd.crt
-    - /etc/uhttpd.key
-
-- name: Configure ssl for uhttpd
-  ansible.builtin.shell: |
-    uci set uhttpd.defaults.country=cz &&
-    uci set uhttpd.defaults.commonname={{ inventory_hostname }} &&
-    uci set uhttpd.defaults.location=CZ &&
-    uci set uhttpd.defaults.location="Czech Republic" &&
-    uci set uhttpd.defaults.state="Czech Republic"
-  changed_when: false
-
-- name: Configure watchcat
-  ansible.builtin.command: uci set system.@watchcat[0].period=5m
-  changed_when: false
-
-- name: Configure collectd_dns
-  ansible.builtin.shell: |
-    uci set luci_statistics.collectd_dns.enable=1 &&
-    uci set luci_statistics.collectd_dns.Interfaces=any
-  changed_when: false
-
-- name: Configure collectd_interface
-  ansible.builtin.command: |
-    uci set luci_statistics.collectd_interface.Interfaces="{{ interfaces | join(' ') }}"
-  changed_when: false
-
-- name: Configure collectd_ping
-  ansible.builtin.shell: |
-    uci set luci_statistics.collectd_processes.enable=1 &&
-    uci set luci_statistics.collectd_processes.Processes="{{ luci_statistics_collectd_processes_processes }}"
-  changed_when: false
-
-- name: Configure collectd_ping
-  ansible.builtin.shell: |
-    uci set luci_statistics.collectd_ping.enable=1 &&
-    uci set luci_statistics.collectd_ping.Hosts=www.google.com
-  changed_when: false
-
-- name: Configure collectd_rrdtool
-  ansible.builtin.shell: |
-    uci set luci_statistics.collectd_rrdtool.CacheTimeout=120 &&
-    uci set luci_statistics.collectd_rrdtool.CacheFlush=900
-  changed_when: false
-
-- name: Configure collectd_tcpconns
-  ansible.builtin.shell: |
-    uci set luci_statistics.collectd_tcpconns.LocalPorts="{{ luci_statistics_collectd_tcpconns_localports }}" &&
-    uci set luci_statistics.collectd_tcpconns.enable=1
-  changed_when: false
-
-- name: Configure collectd_uptime
-  ansible.builtin.command: |
-    uci set luci_statistics.collectd_uptime.enable=1
-  changed_when: false
-
-- name: Enable services on boot
+- name: Start transmission
   community.general.openwrt_init:
-    name: "{{ item }}"
+    name: transmission
     state: started
     enabled: true
-  loop: "{{ enable_boot_services }}"
+
+- name: Download block list
+  ansible.builtin.command: wget "{{ transmission_blocklist_url }}" -O "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+  args:
+    creates: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+  tags:
+    - skip_ansible_lint
+
+- name: Set proper permissions for block list
+  ansible.builtin.file:
+    path: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+    owner: transmission
+    group: transmission
+    mode: u=rw,g=r,o=r

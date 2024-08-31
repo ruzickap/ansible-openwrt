@@ -1,4 +1,6 @@
 config vnstat
 {% for interface in interfaces %}
-        list interface '{{ interface }}'
+{% if not interface | regex_search("phy.-ap.") %}
+        list interface          {{ interface }}
+{% endif %}
 {% endfor %}

@@ -1,0 +1,13 @@
+{
+  "homepage": {
+    "description": "Homepage widget",
+    "read": {
+      "ubus": {
+        "network.interface.wan": ["status"],
+        "network.interface.lan": ["status"],
+        "network.device": ["status"],
+        "system": ["info"]
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+- name: Enable collectd_nlbwmon_vnstat-backup on boot + restore data from backup
+  community.general.openwrt_init:
+    name: collectd_nlbwmon_vnstat-backup
+    # "reloaded" is a workaround to force the service to restore the data from the backup
+    state: reloaded
+    enabled: true

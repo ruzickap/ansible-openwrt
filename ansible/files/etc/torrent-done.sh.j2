@@ -1,0 +1,10 @@
+#!/bin/sh
+
+cat << EOF | /usr/sbin/sendmail {{ notification_email }}
+Subject: $TR_TORRENT_NAME finished.
+
+
+Transmission finished downloading \"$TR_TORRENT_NAME\" on $TR_TIME_LOCALTIME
+EOF
+
+echo "$TR_TIME_LOCALTIME\t$TR_TORRENT_DIR/$TR_TORRENT_NAME" >> /tmp/torrents.log

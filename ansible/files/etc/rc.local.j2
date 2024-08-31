@@ -6,13 +6,12 @@
 sleep 10
 sendmail -t << EOF
 To: {{ notification_email }}
-Subject: Reboot {{ inventory_hostname }}
+Subject: Reboot {{ inventory_hostname }} - $(date "+%Y-%m-%d %H:%M")
 
 
-Openwrt rebooted:
+OpenWRT rebooted:
 
-`date`
-
+$(date)
 EOF
 ) &
 
