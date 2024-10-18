@@ -229,7 +229,6 @@
     minute: "0"
     hour: "3"
     job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
-  notify: collectd_nlbwmon_vnstat_backup_cron
 
 ############################################
 # Transmission

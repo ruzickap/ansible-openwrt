@@ -226,10 +226,3 @@ config redirect
 	option dest       'lan'
 	option dest_port  '22'
 	option proto      'tcp'
-
-config rule 'vsftpd'
-	option name 'Allow-FTP-21'
-	option src 'lan'
-	option proto 'tcp'
-	option dest_port '21'
-	option target 'ACCEPT'
