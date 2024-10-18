@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.1.0...v1.2.0) (2024-10-18)
+
+
+### Features
+
+* add GitHub default templates ([#42](https://github.com/ruzickap/ansible-openwrt/issues/42)) ([0ed304b](https://github.com/ruzickap/ansible-openwrt/commit/0ed304b43e0aa4c7ad19fdb701821e322f2b9fc3))
+* **gh-actions:** add lint-pr-title ([#21](https://github.com/ruzickap/ansible-openwrt/issues/21)) ([c7a4bf0](https://github.com/ruzickap/ansible-openwrt/commit/c7a4bf0d45c983e194bf19ba8327efd611729feb))
+* **gha:** Add GitHub repo files ([#34](https://github.com/ruzickap/ansible-openwrt/issues/34)) ([9ad10ca](https://github.com/ruzickap/ansible-openwrt/commit/9ad10cab527be2c3178c1fd97986af9841b12c10))
+* **gha:** add release-please and renovate, del dependabot ([#28](https://github.com/ruzickap/ansible-openwrt/issues/28)) ([bf46ad2](https://github.com/ruzickap/ansible-openwrt/commit/bf46ad26738405ce2f52e291ce74ee6ceb5ac0f6))
+* **gh:** add default GitHub repo files ([#35](https://github.com/ruzickap/ansible-openwrt/issues/35)) ([df13b50](https://github.com/ruzickap/ansible-openwrt/commit/df13b5001512d04aa729a6a3e2d6e1ffe6ecd1cf))
+* **gh:** add default GitHub repo files ([#36](https://github.com/ruzickap/ansible-openwrt/issues/36)) ([08de4d7](https://github.com/ruzickap/ansible-openwrt/commit/08de4d781930c4583a21a2f96bf6b32e3a2b1322))
+* **gh:** add default GitHub repo files ([#37](https://github.com/ruzickap/ansible-openwrt/issues/37)) ([c231156](https://github.com/ruzickap/ansible-openwrt/commit/c2311566c4e4f1cebde199460218445a8bb0ee7e))
+* **gha:** make checkov config part of megalinter ([#33](https://github.com/ruzickap/ansible-openwrt/issues/33)) ([392c082](https://github.com/ruzickap/ansible-openwrt/commit/392c0823834b92e236f3e4e2a95129efdea79daf))
+* **gha:** unify GHA - renovate, megalinter, markdown, and others ([#32](https://github.com/ruzickap/ansible-openwrt/issues/32)) ([b0275ba](https://github.com/ruzickap/ansible-openwrt/commit/b0275bafbefc48657f52aa769a78938f93c97d49))
+* **gh:** use new repository structure and gha ([#30](https://github.com/ruzickap/ansible-openwrt/issues/30)) ([b1b790a](https://github.com/ruzickap/ansible-openwrt/commit/b1b790a2ef524405f2f3e8d801a2c1c44f8eec02))
+* github action defaults ([#49](https://github.com/ruzickap/ansible-openwrt/issues/49)) ([6b18ac9](https://github.com/ruzickap/ansible-openwrt/commit/6b18ac9625f26c0f3e3bc31ecf98a12ed5c56892))
+* redesign gate for ASUS RT-AX53U ([#44](https://github.com/ruzickap/ansible-openwrt/issues/44)) ([5682f50](https://github.com/ruzickap/ansible-openwrt/commit/5682f50f572a36406b2dfb3de7fb887605daf3de))
+* remove vsftpd fw rule, add msr-2, add country CZ ([#48](https://github.com/ruzickap/ansible-openwrt/issues/48)) ([153d57f](https://github.com/ruzickap/ansible-openwrt/commit/153d57f1e816174522ed86d9d1a7319dba6a6764))
+
 ## [1.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.0.1...v1.1.0) (2024-08-31)
 
 
