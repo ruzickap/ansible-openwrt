@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.2.0...v1.3.0) (2025-01-26)
+
+
+### Features
+
+* **gh:** add default github repo files ([#54](https://github.com/ruzickap/ansible-openwrt/issues/54)) ([cb4d310](https://github.com/ruzickap/ansible-openwrt/commit/cb4d3101ce91baa49bfbd455655b0cabfa11e4c8))
+
 ## [1.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.1.0...v1.2.0) (2024-10-18)
 
 
