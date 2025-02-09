@@ -1,12 +1,5 @@
-# - name: Upgrade router firmware (removes all settings)
-#   ansible.builtin.raw: sysupgrade -n {{ router_firmware }}
-
-# - name: Wait for reboot
-#   wait_for_connection:
-#     delay: 60
-
 - name: Install Python
-  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging python3-urllib )
+  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging python3-urllib python3-decimal )
   changed_when: false
 
 - name: Configure hostname
@@ -135,6 +128,46 @@
     dest: /etc/config/luci_statistics
     src: files/etc/config/luci_statistics.j2
     mode: u=rw,g=r,o=r
+
+- name: Create MC config file
+  ansible.builtin.blockinfile:
+    dest: /etc/mc/ini
+    block: |
+      [Midnight-Commander]
+      auto_save_setup=0
+      drop_menus=1
+      use_internal_edit=1
+      confirm_exit=0
+      editor_return_does_auto_indent=0
+
+      [Layout]
+      keybar_visible=0
+      menubar_visible=0
+      message_visible=0
+
+      [Panels]
+      navigate_with_arrows=1
+
+- name: Configure MC to run without mouse (/etc/profile.d/my-mc.sh)
+  ansible.builtin.copy:
+    dest: /etc/profile.d/my-mc.sh
+    src: files/{{ inventory_hostname }}/etc/profile.d/my-mc.sh
+    mode: u=rwx,g=rx,o=rx
+
+- name: Enable adblock lists
+  ansible.builtin.shell:
+    cmd: set -o pipefail && uci show adblock.global.adb_sources | grep -q "{{ item }}" || uci add_list adblock.global.adb_sources={{ item }}
+    executable: /bin/bash
+  loop: "{{ adblock_lists }}"
+  changed_when: false
+
+- name: Cronjob for adblock regular block list update
+  ansible.builtin.cron:
+    name: "Adblock regular block list update"
+    weekday: "1"
+    minute: "0"
+    hour: "4"
+    job: "/etc/init.d/adblock reload"
 
 ############################################
 # Configure msmtp + email notifications
@@ -265,3 +298,8 @@
     owner: transmission
     group: transmission
     mode: u=rw,g=r,o=r
+
+- name: Restore data using collectd_nlbwmon_vnstat-backup
+  ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
+  args:
+    creates: /tmp/rrd/{{ inventory_hostname_short }}/cpu-0

@@ -1,3 +1,4 @@
+# keep-sorted start newline_separated=yes
 cloudflare_api_key: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   31346264393466383033396238373136386132316634336330326231333934336136383061333265
@@ -15,6 +16,7 @@ cloudflare_api_key: !vault |
   65633961613339333630333139613765613932353361643161613139656637636535
 
 dhcp_hosts:
+  # keep-sorted start
   - name: raspberrypi-wifi
     ip: 192.168.1.2
     mac: dc:a6:32:0e:bd:14
@@ -24,16 +26,19 @@ dhcp_hosts:
   - name: msr-2-wifi
     ip: 192.168.1.4
     mac: f0:f5:bd:f5:85:f4
+  # keep-sorted end
 
 guest_network_subnet: 172.16.254.0/24
 
 interfaces:
+  # keep-sorted start
   - br-guest
   - br-lan
   - eth0
   - phy0-ap0
   - phy1-ap0
   - wan
+  # keep-sorted end
 
 luci_homepage_openwrt_widget_password_hash: !vault |
   $ANSIBLE_VAULT;1.1;AES256
@@ -50,7 +55,10 @@ notification_email: petr.ruzicka@gmail.com
 
 openwrt_backup_directory: "{{ usb_disk_mount_path }}/backups/openwrt"
 openwrt_packages:
+  # keep-sorted start
+  - adblock
   - bash
+  - bind-dig
   - block-mount
   - cloudflared
   - collectd-mod-conntrack
@@ -69,6 +77,8 @@ openwrt_packages:
   - hd-idle
   - htop
   - kmod-fs-btrfs
+  - luci-app-adblock
+  - less
   - kmod-usb-storage-uas
   - luci-app-cloudflared
   - luci-app-nlbwmon
@@ -77,6 +87,7 @@ openwrt_packages:
   - luci-app-vnstat2
   - luci-app-watchcat
   - luci-mod-rpc
+  - mc
   - msmtp-mta
   - openssh-sftp-server
   - prometheus-node-exporter-lua
@@ -85,9 +96,14 @@ openwrt_packages:
   - prometheus-node-exporter-lua-openwrt
   - prometheus-node-exporter-lua-wifi
   - prometheus-node-exporter-lua-wifi_stations
+  - python3-decimal
+  - python3-light
+  - python3-logging
+  - python3-urllib
   - rsync
   - transmission-web
   - vsftpd
+  # keep-sorted end
 
 root_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
@@ -96,8 +112,6 @@ root_password: !vault |
   36616538313131666262633138666562326130376432383931366661616533653538303135626665
   3037666135343562380a643762323466343963623735626230623961363539303361643364396332
   6463
-
-router_firmware: https://downloads.openwrt.org/releases/23.05.5/targets/ramips/mt7621/openwrt-23.05.5-ramips-mt7621-asus_rt-ax53u-squashfs-sysupgrade.bin
 
 transmission_blocklist_url: https://raw.githubusercontent.com/Naunter/BT_BlockLists/master/bt_blocklists
 transmission_speed_limit_down: 3000
@@ -117,3 +131,18 @@ wifi_password: !vault |
   6130366531326266330a346331663639316534346562643330613731626139393837663865656534
   6339
 wifi_ssid: ruzickovi
+
+adblock_lists:
+  # keep-sorted end
+  - adguard
+  - dshield
+  - hphosts
+  - malware
+  - malwarelist
+  - openphish
+  - reg_cz
+  - spam404
+  - sysctl
+  - whocares
+  # keep-sorted end
+# keep-sorted end
