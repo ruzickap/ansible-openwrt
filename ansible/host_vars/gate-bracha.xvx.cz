@@ -1,4 +1,3 @@
-router_firmware: https://downloads.openwrt.org/releases/19.07.3/targets/ipq40xx/generic/openwrt-19.07.3-ipq40xx-generic-zyxel_nbg6617-squashfs-sysupgrade.bin
 notification_email: ruzickajiri@gmail.com
 
 root_password: !vault |
@@ -53,6 +52,7 @@ transmission_speed_limit_down: 3000
 transmission_speed_limit_up: 10
 
 openwrt_packages:
+  # keep-sorted start
   - adblock
   - bash
   - bind-dig
@@ -93,6 +93,7 @@ openwrt_packages:
   - transmission-web
   - vim
   - wget
+  # keep-sorted end
 
 enable_boot_services:
   - adblock
