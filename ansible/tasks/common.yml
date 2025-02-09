@@ -129,10 +129,17 @@
     src: files/etc/config/luci_statistics.j2
     mode: u=rw,g=r,o=r
 
+- name: Create directory for mc inside ~/.config
+  ansible.builtin.file:
+    path: ~/.config/mc/
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
 - name: Create MC config file
-  ansible.builtin.blockinfile:
-    dest: /etc/mc/ini
-    block: |
+  ansible.builtin.copy:
+    dest: ~/.config/mc/ini
+    mode: u=rw,g=r,o=r
+    content: |
       [Midnight-Commander]
       auto_save_setup=0
       drop_menus=1
