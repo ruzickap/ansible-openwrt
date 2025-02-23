@@ -44,6 +44,7 @@
     dest: /etc/config/wireless
     src: files/{{ inventory_hostname }}/etc/config/wireless.j2
     mode: u=rw,g=,o=
+  no_log: true
 
 - name: Set root password
   ansible.builtin.replace:
@@ -113,21 +114,15 @@
     uci set watchcat.@watchcat[0].period=5m
   changed_when: false
 
-- name: Enable prometheus to liston on lan
-  ansible.builtin.command: |
-    uci set prometheus-node-exporter-lua.@prometheus-node-exporter-lua[0].listen_interface=lan
-  changed_when: false
-
-- name: Enable hd-idle
-  ansible.builtin.command: |
-    uci set hd-idle.@hd-idle[-1].enabled=1
-  changed_when: false
-
 - name: Luci statistics (/etc/config/luci_statistics)
   ansible.builtin.template:
     dest: /etc/config/luci_statistics
     src: files/etc/config/luci_statistics.j2
     mode: u=rw,g=r,o=r
+
+- name: Use HTTPS for LuCI
+  ansible.builtin.command: uci set uhttpd.main.redirect_https=1
+  changed_when: false
 
 - name: Create directory for mc inside ~/.config
   ansible.builtin.file:
@@ -158,8 +153,13 @@
 - name: Configure MC to run without mouse (/etc/profile.d/my-mc.sh)
   ansible.builtin.copy:
     dest: /etc/profile.d/my-mc.sh
-    src: files/{{ inventory_hostname }}/etc/profile.d/my-mc.sh
     mode: u=rwx,g=rx,o=rx
+    content: |
+      #!/usr/bin/env sh
+
+      # Don't define aliases in plain Bourne shell
+      [ -n "${BASH_VERSION}${KSH_VERSION}${ZSH_VERSION}" ] || return 0
+      alias mc='/usr/bin/mc --nomouse'
 
 - name: Enable adblock lists
   ansible.builtin.shell:
@@ -176,6 +176,22 @@
     hour: "4"
     job: "/etc/init.d/adblock reload"
 
+- name: Enable + Configure Adblock
+  ansible.builtin.shell: |
+    uci set adblock.global.adb_mail=1 &&
+    uci set adblock.global.adb_mailprofile="default" &&
+    uci set adblock.global.adb_mailreceiver="petr.ruzicka@gmail.com" &&
+    uci set adblock.global.adb_mailsender="banip@{{ inventory_hostname }}" &&
+    uci set adblock.global.adb_mailcnt=50
+  changed_when: false
+
+- name: Enable + Configure banIP
+  ansible.builtin.shell: |
+    uci set banip.global.ban_enabled=1 &&
+    uci set banip.global.ban_logcount=3 &&
+    uci set banip.global.ban_nftexpiry="1d"
+  changed_when: false
+
 ############################################
 # Configure msmtp + email notifications
 ############################################
@@ -185,6 +201,7 @@
     dest: /etc/msmtprc
     src: files/etc/msmtprc.j2
     mode: u=rw,g=,o=
+  no_log: true
 
 - name: Reboot notification
   ansible.builtin.template:
@@ -228,25 +245,6 @@
   changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
   when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
 
-- name: Create "media" directories on the disk
-  ansible.builtin.file:
-    path: "{{ usb_disk_mount_path }}/{{ item.name }}"
-    state: directory
-    owner: ftp
-    group: ftp
-    mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
-  loop:
-    - name: media
-      mode: u=rx,g=rx,o=rx
-    - name: media/movies
-    - name: media/music
-
-- name: Allow access to media using http (uhttpd)
-  ansible.builtin.file:
-    src: "{{ usb_disk_mount_path }}/media"
-    dest: /www/media
-    state: link
-
 ############################################
 # Add backup script
 ############################################
@@ -269,42 +267,6 @@
     minute: "0"
     hour: "3"
     job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
-
-############################################
-# Transmission
-############################################
-
-- name: Configure transmission
-  ansible.builtin.template:
-    dest: /etc/config/transmission
-    src: files/etc/config/transmission.j2
-    mode: u=rw,g=r,o=r
-
-- name: Install transmission torrent done smtp notification script
-  ansible.builtin.template:
-    dest: /etc/torrent-done.sh
-    src: files/etc/torrent-done.sh.j2
-    mode: u=rwx,g=rx,o=rx
-
-- name: Start transmission
-  community.general.openwrt_init:
-    name: transmission
-    state: started
-    enabled: true
-
-- name: Download block list
-  ansible.builtin.command: wget "{{ transmission_blocklist_url }}" -O "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
-  args:
-    creates: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
-  tags:
-    - skip_ansible_lint
-
-- name: Set proper permissions for block list
-  ansible.builtin.file:
-    path: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
-    owner: transmission
-    group: transmission
-    mode: u=rw,g=r,o=r
 
 - name: Restore data using collectd_nlbwmon_vnstat-backup
   ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore

@@ -1,107 +1,6 @@
-notification_email: ruzickajiri@gmail.com
-
-root_password: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  31393030366438346339326461373762303765306133323262653630636632306439666634323961
-  3831653934376566643232303264663730393231373133630a386466343232356162376361623336
-  34653636346139306130323633326666333462353263313464636530383638333631643264313434
-  3966633038323930620a346633363538353839386665653639313932323131623333336635656365
-  3234
-
-wifi_ssid: kerova11
-wifi_2ghz_channel: 13
-wifi_5ghz_channel: 40
-wifi_password: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  64333937316561656637366530333735313366326264616337346262326565616361333932623234
-  3534336139353836353034646438303262383937313533350a623032663765373365373036393739
-  63663033323934623961366636383632323265353939306630653330323132653630336133323839
-  3161666439306432630a336163383464663866343664643033396164353063323730333338363531
-  6364
-
-samba_root_password: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  65393033666265303635623930396161616232363262373766393638343634333937343634656364
-  3763366266616238353234323539613565363563663932320a393030626638333739396262666535
-  64333131383936316136313836663933656539336265323132643736643634653637313035356436
-  6335303065333237380a343839376265376631636563636164633866363831663534626139383061
-  6531
-
-smtp_gmail_auth_password: !vault |
-  $ANSIBLE_VAULT;1.1;AES256
-  66393431656437356632306166656139636362666366333965383730333237656663663632353532
-  3235396531303537313936383663326161656133393333320a643536343932333165626439303062
-  38303565363337656532363237323337396434373266333936373332623030356234633866393065
-  3362643730626464360a393461396564386137353631333038653030393232313430646336626663
-  36313562363432616164343466373565313863353063623835613038366436326666
-
-usb_disk_device: sda
-usb_disk_mount_path: /mnt/usb
-
-openwrt_backup_directory: "{{ usb_disk_mount_path }}/openwrt"
-
-luci_statistics_collectd_tcpconns_localports: "22 80 139 443 445 22222"
-luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear hostapd nlbwmon ntpd smbd transmission-daemon uhttpd vnstatd"
-interfaces:
-  - br-lan
-  - eth1
-  - wlan0
-  - wlan1
-
-transmission_speed_limit_down: 3000
-transmission_speed_limit_up: 10
-
-openwrt_packages:
-  # keep-sorted start
-  - adblock
-  - bash
-  - bind-dig
-  - block-mount
-  - ca-certificates                     # Needed for downloading files using Ansible
-  - collectd-mod-conntrack
-  - collectd-mod-df
-  - collectd-mod-disk
-  - collectd-mod-dns
-  - collectd-mod-ping
-  - collectd-mod-processes
-  - collectd-mod-tcpconns
-  - collectd-mod-uptime
-  - hd-idle
-  - htop
-  - kmod-fs-ext4
-  - kmod-usb-storage
-  - less
-  - luci-app-adblock
-  - luci-app-hd-idle
-  - luci-app-nlbwmon
-  - luci-app-samba
-  - luci-app-statistics
-  - luci-app-transmission
-  - luci-app-vnstat
-  - luci-app-watchcat
-  - luci-ssl
-  - mc
-  - nmap
-  - python3-codecs                      # Needed for python to download files (ansible get_url)
-  - python3-openssl                     # Needed for python to download files (ansible get_url)
-  - python3-urllib                      # Needed for python to download files (ansible get_url)
-  - rsync
-  - ss
-  - ssmtp
-  - tcpdump
-  - transmission-daemon-mbedtls
-  - transmission-web
-  - vim
-  - wget
-  # keep-sorted end
-
-enable_boot_services:
-  - adblock
-  - collectd_nlbwmon_vnstat-backup
-  - cron
-  - transmission
-
+# keep-sorted start newline_separated=yes
 adblock_lists:
+  # keep-sorted start
   - adguard
   - dshield
   - hphosts
@@ -112,8 +11,93 @@ adblock_lists:
   - spam404
   - sysctl
   - whocares
+  # keep-sorted end
 
 dhcp_hosts:
-  - name: raspberrypi-nic
-    ip: 192.168.1.2
-    mac: e4:5f:01:25:e4:fa
+  - ip: 192.168.1.2
+    name: truenas
+    mac: d0:46:0c:9a:81:d9
+
+enable_boot_services:
+  - banip
+  - collectd
+
+interfaces:
+  - br-lan
+  - eth0
+
+luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd wpa_supplicant"
+
+luci_statistics_collectd_tcpconns_localports: "22 443 22222"
+
+notification_email: ruzickajiri@gmail.com
+
+openwrt_backup_directory: "{{ usb_disk_mount_path }}/backups/openwrt"
+
+openwrt_packages:
+  # keep-sorted start
+  - adblock
+  - bash
+  - bind-dig
+  - block-mount
+  - collectd-mod-conntrack
+  - collectd-mod-contextswitch
+  - collectd-mod-df
+  - collectd-mod-dhcpleases
+  - collectd-mod-disk
+  - collectd-mod-dns
+  - collectd-mod-entropy
+  - collectd-mod-ipstatistics
+  - collectd-mod-ping
+  - collectd-mod-processes
+  - collectd-mod-tcpconns
+  - collectd-mod-uptime
+  - htop
+  - kmod-fs-btrfs
+  - kmod-usb-storage-uas
+  - less
+  - luci-app-adblock
+  - luci-app-banip
+  - luci-app-nlbwmon
+  - luci-app-statistics
+  - luci-app-vnstat2
+  - luci-app-watchcat
+  - luci-ssl
+  - mc
+  - msmtp-mta
+  - openssh-sftp-server
+  - python3-decimal
+  - python3-light
+  - python3-logging
+  - python3-urllib
+  - rsync
+  # keep-sorted end
+
+root_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  35653765663463343339333835633639343130383031616539616431363634636330613139313665
+  3562386432393566356133303736643331666330376536610a323537666437613666656466383736
+  63316565616630393662373965356132616433623237656661393635303264363237366239303065
+  6363623039393532320a616165653561653538343838656130663663633066633438316331333831
+  3364
+
+usb_disk_device: sda
+
+usb_disk_fs_type: btrfs
+
+usb_disk_mount_path: /mnt
+
+wifi_2ghz_channel: 13
+
+wifi_5ghz_channel: 40
+
+wifi_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  36633131363533633466366534643164346161346530653962353866306262303139616637376432
+  6364323137336532393463633630383435393239653062360a663931373739636662663930663761
+  61316165386165393863653734663530383364316365383238653238323135633032306537333134
+  6336373032636634620a306161353335323539633235653563626566316337663162326239613037
+  6337
+
+wifi_ssid: kerova11
+# keep-sorted end
