@@ -1,33 +1,6 @@
-############################################
-# Samba
-############################################
-
-- name: Configure Samba (/etc/config/samba)
-  ansible.builtin.template:
-    dest: /etc/config/samba
-    src: files/{{ inventory_hostname }}/etc/config/samba.j2
-    mode: u=rw,g=r,o=r
-
-- name: Create local credential file for smaba
-  delegate_to: localhost
-  ansible.builtin.copy:
-    dest: "{{ lookup('env', 'HOME') }}/Documents/secrets/{{ inventory_hostname }}-cifs-credentials"
-    content: |
-      [{{ inventory_hostname }}]
-      username=root
-      password={{ samba_root_password }}
-    mode: u=rw,g=,o=
-    owner: "{{ lookup('env', 'USER') }}"
-    group: "{{ lookup('env', 'USER') }}"
-
-- name: Set SMB password for root
-  ansible.builtin.shell: |
-    set -o pipefail
-    echo -e "{{ samba_root_password }}\n{{ samba_root_password }}" | smbpasswd -a -s root
-  changed_when: false
-
-- name: Allow root to use samba
-  ansible.builtin.replace:
-    path: /etc/samba/smb.conf.template
-    regexp: "^(\\s)invalid users = root"
-    replace: "\\1# invalid users = root"
+- name: Enable services on boot
+  community.general.openwrt_init:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop: "{{ enable_boot_services }}"

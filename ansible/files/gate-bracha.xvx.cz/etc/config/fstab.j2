@@ -6,10 +6,11 @@ config 'global'
 	option	delay_root	'5'
 	option	check_fs	'0'
 
+# mkfs.btrfs --runtime-features free-space-tree --label OpenWrt_Disk_4_GB --nodiscard /dev/sda1
 config mount
        option device '/dev/{{ usb_disk_device }}1'
-       option fstype 'ext4'
-       option options 'rw,noatime,nodiratime'
+       option fstype 'btrfs'
+       option options 'noatime,nodiratime,compress=zstd,autodefrag,space_cache=v2'
        option enabled '1'
        option enabled_fsck '0'
        option target '{{ usb_disk_mount_path }}'
