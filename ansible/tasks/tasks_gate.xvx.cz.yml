@@ -1,9 +1,74 @@
+- name: Enable hd-idle
+  ansible.builtin.command: |
+    uci set hd-idle.@hd-idle[-1].enabled=1
+  changed_when: false
+
+- name: Create "media" directories on the disk
+  ansible.builtin.file:
+    path: "{{ usb_disk_mount_path }}/{{ item.name }}"
+    state: directory
+    owner: ftp
+    group: ftp
+    mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
+  loop:
+    - name: media
+      mode: u=rx,g=rx,o=rx
+    - name: media/movies
+    - name: media/music
+
+- name: Allow access to media using http (uhttpd)
+  ansible.builtin.file:
+    src: "{{ usb_disk_mount_path }}/media"
+    dest: /www/media
+    state: link
+
+- name: Enable prometheus to liston on lan
+  ansible.builtin.command: |
+    uci set prometheus-node-exporter-lua.@prometheus-node-exporter-lua[0].listen_interface=lan
+  changed_when: false
+
 - name: Configure cloudflared
   ansible.builtin.shell: |
     uci set cloudflared.@cloudflared[0].enabled=1 &&
     uci set cloudflared.@cloudflared[0].token={{ cloudflare_api_key }} &&
     uci set cloudflared.@cloudflared[0].tag=fqdn={{ inventory_hostname }}
   changed_when: false
+
+############################################
+# Transmission
+############################################
+
+- name: Configure transmission
+  ansible.builtin.template:
+    dest: /etc/config/transmission
+    src: files/{{ inventory_hostname }}/etc/config/transmission.j2
+    mode: u=rw,g=r,o=r
+
+- name: Install transmission torrent done smtp notification script
+  ansible.builtin.template:
+    dest: /etc/torrent-done.sh
+    src: files/{{ inventory_hostname }}/etc/torrent-done.sh.j2
+    mode: u=rwx,g=rx,o=rx
+
+- name: Start transmission
+  community.general.openwrt_init:
+    name: transmission
+    state: started
+    enabled: true
+
+- name: Download block list
+  ansible.builtin.command: wget "{{ transmission_blocklist_url }}" -O "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+  args:
+    creates: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+  tags:
+    - skip_ansible_lint
+
+- name: Set proper permissions for block list
+  ansible.builtin.file:
+    path: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+    owner: transmission
+    group: transmission
+    mode: u=rw,g=r,o=r
 
 ############################################
 # Homepage

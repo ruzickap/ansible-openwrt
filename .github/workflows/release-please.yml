@@ -7,13 +7,14 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: read-all
 
 jobs:
   release-please:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/create-github-app-token@0d564482f06ca65fa9e77e2510873638c82206f2 # v1.11.5
         id: app-token
