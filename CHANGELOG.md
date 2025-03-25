@@ -1,5 +1,23 @@
 # Changelog
 
+## [2.0.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.2.0...v2.0.0) (2025-03-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* redesign gate + gate-bracha ([#59](https://github.com/ruzickap/ansible-openwrt/issues/59))
+
+### Features
+
+* add mc and adblock ([#57](https://github.com/ruzickap/ansible-openwrt/issues/57)) ([48c51b7](https://github.com/ruzickap/ansible-openwrt/commit/48c51b7272a1d0958e07fed2ba3124122d2d130c))
+* **gh:** add default github repo files ([#54](https://github.com/ruzickap/ansible-openwrt/issues/54)) ([cb4d310](https://github.com/ruzickap/ansible-openwrt/commit/cb4d3101ce91baa49bfbd455655b0cabfa11e4c8))
+* redesign gate + gate-bracha ([#59](https://github.com/ruzickap/ansible-openwrt/issues/59)) ([17b42ad](https://github.com/ruzickap/ansible-openwrt/commit/17b42ad941a28dc446ab0e980331158a27e59bd7))
+
+
+### Bug Fixes
+
+* add mc configuration to home dir ([#58](https://github.com/ruzickap/ansible-openwrt/issues/58)) ([ada90b4](https://github.com/ruzickap/ansible-openwrt/commit/ada90b4a1be5ddd22245c57afc3548eb511d3026))
+
 ## [1.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.1.0...v1.2.0) (2024-10-18)
 
 
