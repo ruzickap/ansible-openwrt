@@ -5,6 +5,36 @@ Ansible playbooks configuring Openwrt devices (Wi-Fi routers)
 > 💡 Always build your own OpenWrt Firmware with installed packages (it will
 > save disk space)
 
+## Flash router and allow SSH access to the router form the WAN
+
+```bash
+# Flash OpenWrt firmware
+sysupgrade -p -n -v https://sysupgrade.openwrt.org/store/834d5261fadfab7d4f781ca4aefc8c9d8a9492bfd832365b4f1bcb0bea0de956/openwrt-24.10.0-0a8242515cd3-ipq40xx-generic-zyxel_nbg6617-squashfs-sysupgrade.bin
+
+# Set root password
+passwd
+
+# Enable SSH access from the WAN
+wget https://github.com/ruzickap.keys -O /etc/dropbear/authorized_keys
+
+uci add firewall rule
+uci set firewall.@rule[-1].name=Allow-SSH
+uci set firewall.@rule[-1].src=wan
+uci set firewall.@rule[-1].target=ACCEPT
+uci set firewall.@rule[-1].proto=tcp
+uci set firewall.@rule[-1].dest_port=22
+
+uci add firewall redirect
+uci set firewall.@redirect[-1].name=Allow-SSH-22222
+uci set firewall.@redirect[-1].src=wan
+uci set firewall.@redirect[-1].proto=tcp
+uci set firewall.@redirect[-1].src_dport=22222
+uci set firewall.@redirect[-1].dest=lan
+uci set firewall.@redirect[-1].dest_port=22
+uci commit
+/etc/init.d/firewall restart
+```
+
 ## [ASUS RT-AX53U](https://openwrt.org/toh/asus/rt-ax53u)
 
 * [Firmware](https://firmware-selector.openwrt.org/?version=24.10.0&target=ramips%2Fmt7621&id=asus_rt-ax53u)
@@ -68,9 +98,23 @@ packages installed via Ansible:
 
 ```console
 Filesystem                Size      Used Available Use% Mounted on
-/dev/root                 4.0M      4.0M         0 100% /rom
-tmpfs                   121.2M    188.0K    121.0M   0% /tmp
-/dev/mtdblock14          20.6M      8.6M     11.9M  42% /overlay
-overlayfs:/overlay       20.6M      8.6M     11.9M  42% /
+/dev/root                15.5M     15.5M         0 100% /rom
+tmpfs                   120.7M      6.2M    114.5M   5% /tmp
+/dev/mtdblock14           9.0M    452.0K      8.6M   5% /overlay
+overlayfs:/overlay        9.0M    452.0K      8.6M   5% /
 tmpfs                   512.0K         0    512.0K   0% /dev
+/dev/sda1                 3.7G      6.9M      3.2G   0% /mnt
+```
+
+List of partitions after OpenWRT firmware installation (version 24.10.0):
+
+```console
+# df -h
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root                21.3M     21.3M         0 100% /rom
+tmpfs                   120.7M      2.9M    117.8M   2% /tmp
+tmpfs                   120.7M    128.0K    120.6M   0% /tmp/root
+tmpfs                   512.0K         0    512.0K   0% /dev
+/dev/mtdblock14           3.3M    304.0K      3.0M   9% /overlay
+overlayfs:/overlay        3.3M    304.0K      3.0M   9% /
 ```
