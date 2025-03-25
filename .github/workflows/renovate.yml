@@ -43,6 +43,15 @@ env:
 permissions: read-all
 
 jobs:
+  github-context:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Debug
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: |
+          echo "${GITHUB_CONTEXT}"
+
   renovate:
     runs-on: ubuntu-latest
     concurrency:
