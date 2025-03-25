@@ -1,18 +1,4 @@
 # keep-sorted start newline_separated=yes
-adblock_lists:
-  # keep-sorted start
-  - adguard
-  - dshield
-  - hphosts
-  - malware
-  - malwarelist
-  - openphish
-  - reg_cz
-  - spam404
-  - sysctl
-  - whocares
-  # keep-sorted end
-
 dhcp_hosts:
   - ip: 192.168.1.2
     name: truenas
@@ -36,7 +22,6 @@ openwrt_backup_directory: "{{ usb_disk_mount_path }}/backups/openwrt"
 
 openwrt_packages:
   # keep-sorted start
-  - adblock
   - bash
   - bind-dig
   - block-mount
@@ -56,7 +41,6 @@ openwrt_packages:
   - kmod-fs-btrfs
   - kmod-usb-storage-uas
   - less
-  - luci-app-adblock
   - luci-app-banip
   - luci-app-nlbwmon
   - luci-app-statistics

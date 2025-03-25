@@ -161,30 +161,6 @@
       [ -n "${BASH_VERSION}${KSH_VERSION}${ZSH_VERSION}" ] || return 0
       alias mc='/usr/bin/mc --nomouse'
 
-- name: Enable adblock lists
-  ansible.builtin.shell:
-    cmd: set -o pipefail && uci show adblock.global.adb_sources | grep -q "{{ item }}" || uci add_list adblock.global.adb_sources={{ item }}
-    executable: /bin/bash
-  loop: "{{ adblock_lists }}"
-  changed_when: false
-
-- name: Cronjob for adblock regular block list update
-  ansible.builtin.cron:
-    name: "Adblock regular block list update"
-    weekday: "1"
-    minute: "0"
-    hour: "4"
-    job: "/etc/init.d/adblock reload"
-
-- name: Enable + Configure Adblock
-  ansible.builtin.shell: |
-    uci set adblock.global.adb_mail=1 &&
-    uci set adblock.global.adb_mailprofile="default" &&
-    uci set adblock.global.adb_mailreceiver="petr.ruzicka@gmail.com" &&
-    uci set adblock.global.adb_mailsender="banip@{{ inventory_hostname }}" &&
-    uci set adblock.global.adb_mailcnt=50
-  changed_when: false
-
 - name: Enable + Configure banIP
   ansible.builtin.shell: |
     uci set banip.global.ban_enabled=1 &&

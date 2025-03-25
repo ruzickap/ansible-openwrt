@@ -137,3 +137,14 @@ config redirect
 	option dest      'lan'
 	option dest_port '22'
 	option proto     'tcp'
+
+# port redirect for Plex 56410 -> 192.168.1.2:32400
+config redirect
+	option name      'plex'
+ 	option target    'DNAT'
+ 	option src       'wan'
+ 	option src_dport '56410'
+ 	option dest      'lan'
+ 	option dest_port '32400'
+ 	option proto     'tcp'
+ 	option dest_ip   '192.168.1.2'

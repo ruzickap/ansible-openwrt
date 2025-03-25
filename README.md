@@ -97,6 +97,13 @@ List of partitions after OpenWRT firmware installation (version 23.05.5) with
 packages installed via Ansible:
 
 ```console
+Filesystem                Size      Used Available Use% Mounted on
+/dev/root                15.5M     15.5M         0 100% /rom
+tmpfs                   120.7M      6.2M    114.5M   5% /tmp
+/dev/mtdblock14           9.0M    452.0K      8.6M   5% /overlay
+overlayfs:/overlay        9.0M    452.0K      8.6M   5% /
+tmpfs                   512.0K         0    512.0K   0% /dev
+/dev/sda1                 3.7G      6.9M      3.2G   0% /mnt
 ```
 
 List of partitions after OpenWRT firmware installation (version 24.10.0):

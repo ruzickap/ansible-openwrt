@@ -19,8 +19,6 @@ config dnsmasq
 	option ednspacket_max '1232'
 	option filter_aaaa '0'
 	option filter_a '0'
-	# adblock support
-	option confdir '/tmp/dnsmasq.d'
 {% if dhcp_dns_server is defined %}
 	option dhcp_option '6,{{ dhcp_dns_server }}'
 {% endif %}
