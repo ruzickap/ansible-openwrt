@@ -88,6 +88,7 @@ config statistics 'collectd_cpufreq'
 config statistics 'collectd_curl'
 	option enable '0'
 
+{% if usb_disk_device is defined %}
 config statistics 'collectd_df'
 	option enable '1'
 	option Devices '/dev/{{ usb_disk_device }}1'
@@ -96,14 +97,15 @@ config statistics 'collectd_df'
 	option IgnoreSelected '0'
 	option ValuesPercentage '0'
 
-config statistics 'collectd_dhcpleases'
-	option enable '1'
-	option Path '/tmp/dhcp.leases'
-
 config statistics 'collectd_disk'
 	option enable '1'
 	option Disks '{{ usb_disk_device }}'
 	option IgnoreSelected '0'
+{% endif %}
+
+config statistics 'collectd_dhcpleases'
+	option enable '1'
+	option Path '/tmp/dhcp.leases'
 
 config statistics 'collectd_dns'
 	option enable '1'
@@ -207,8 +209,7 @@ config statistics 'collectd_splash_leases'
 config statistics 'collectd_tcpconns'
 	option enable '1'
 	option ListeningPorts '0'
-	list LocalPorts '{{ luci_statistics_collectd_tcpconns_localports }}'
-	option AllPortsSummary '0'
+	option LocalPorts '{{ luci_statistics_collectd_tcpconns_localports }}'
 
 config statistics 'collectd_thermal'
 	option enable '0'

@@ -6,15 +6,13 @@
 account default
 
 # The SMTP smarthost
-host smtp.gmail.com
+host {{ msmtp_host }}
 
-# Use TLS on port 465. On this port, TLS starts without STARTTLS.
-port 465
+# Use TLS
+port 2525
 tls on
-tls_starttls off
 
-# Construct envelope-from addresses of the form "user@oursite.example"
-from %U@oursite.example
+from {{ msmtp_from }}
 # Do not allow programs to override this envelope-from address via -f
 allow_from_override off
 # Always set a From header that matches the envelope-from address
@@ -24,5 +22,5 @@ set_from_header on
 syslog LOG_MAIL
 
 auth on
-user {{ smtp_gmail_auth_user }}
-password {{ smtp_gmail_auth_password }}
+user {{ msmtp_auth_user }}
+password {{ msmtp_auth_password }}

@@ -1,6 +1,0 @@
-- name: Enable services on boot
-  community.general.openwrt_init:
-    name: "{{ item }}"
-    state: started
-    enabled: true
-  loop: "{{ enable_boot_services }}"

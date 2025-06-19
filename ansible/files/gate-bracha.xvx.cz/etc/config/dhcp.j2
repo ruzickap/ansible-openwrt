@@ -19,8 +19,8 @@ config dnsmasq
 	option ednspacket_max '1232'
 	option filter_aaaa '0'
 	option filter_a '0'
-{% if dhcp_dns_server is defined %}
-	option dhcp_option '6,{{ dhcp_dns_server }}'
+{% if dhcp_dns_servers is defined %}
+	list dhcp_option '6,{{ dhcp_dns_servers }}'
 {% endif %}
 
 config dhcp 'lan'
