@@ -16,6 +16,18 @@ luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear hostapd
 
 luci_statistics_collectd_tcpconns_localports: "22 443 22222"
 
+# Mailtrap API credentials
+msmtp_auth_password: !vault |
+  $ANSIBLE_VAULT;1.1;AES256
+  39666563646531356363613464393361623836386266316132356434326531623563623935386634
+  3038333361623738303636613366363961393462336433610a623637326663316566343230616434
+  66643865636439633439613939383665366261633330663839306465623965373163623031653965
+  3131633863383331350a363162306238396664323433656262646137616236356664383532343835
+  36313536656132633862663737306239643966646437353139666461616135363631626664326562
+  3365303264653962353765353861643966383330666333656235
+
+msmtp_auth_user: api
+
 notification_email: ruzickajiri@gmail.com
 
 openwrt_backup_directory: "{{ usb_disk_mount_path }}/backups/openwrt"
@@ -71,7 +83,7 @@ usb_disk_fs_type: btrfs
 
 usb_disk_mount_path: /mnt
 
-wifi_2ghz_channel: 13
+wifi_2ghz_channel: 11
 
 wifi_5ghz_channel: 40
 
@@ -84,4 +96,5 @@ wifi_password: !vault |
   6337
 
 wifi_ssid: kerova11
+
 # keep-sorted end

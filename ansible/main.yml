@@ -14,3 +14,7 @@
       ansible.builtin.command: |
         uci commit
       changed_when: false
+
+  handlers:
+    - name: Import handlers
+      ansible.builtin.import_tasks: handlers/main.yml

@@ -3,7 +3,7 @@
 
 (
 # Wait for network to be fully initialized
-sleep 10
+sleep 20
 sendmail -t << EOF
 To: {{ notification_email }}
 Subject: Reboot {{ inventory_hostname }} - $(date "+%Y-%m-%d %H:%M")

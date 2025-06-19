@@ -2,5 +2,5 @@
 
 set -eux
 
-cd ansible
+cd ansible || exit
 ansible-playbook --diff main.yml -i inventory/hosts

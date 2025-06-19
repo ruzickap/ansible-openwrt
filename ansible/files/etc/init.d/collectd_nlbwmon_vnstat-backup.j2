@@ -24,7 +24,8 @@ backup_database() {
         echo -n "$(date) - Backup:" >> "${BACKUP_DIR}/log"
 
         if [ ! -d "${COLLECTD_DIR}" ]; then
-                logger -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${COLLECTD_DIR} does not exist (yet)"
+                echo >> "${BACKUP_DIR}/log"
+                logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${COLLECTD_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
         else
                 logger -t "${LOGGER_TAG}" -p info "backing up collectd database"
                 echo -n " collectd" >> "${BACKUP_DIR}/log"
@@ -32,7 +33,8 @@ backup_database() {
         fi
 
         if [ ! -d "${NLBWMON_DIR}" ]; then
-                logger -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${NLBWMON_DIR} does not exist (yet)"
+                echo >> "${BACKUP_DIR}/log"
+                logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${NLBWMON_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
         else
                 logger -t "${LOGGER_TAG}" -p info "backing up nlbwmon database"
                 echo -n " nlbwmon" >> "${BACKUP_DIR}/log"
@@ -40,7 +42,8 @@ backup_database() {
         fi
 
         if [ ! -d "${VNSTAT_DIR}" ]; then
-                logger -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${VNSTAT_DIR} does not exist (yet)"
+                echo >> "${BACKUP_DIR}/log"
+                logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${VNSTAT_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
         else
                 logger -t "${LOGGER_TAG}" -p info "backing up vnstat database"
                 echo -n " vnstat" >> "${BACKUP_DIR}/log"
@@ -54,7 +57,8 @@ restore_database() {
         echo -n "$(date) - Restore:" >> "${BACKUP_DIR}/log"
 
         if [ ! -d "${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}" ]; then
-                logger -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME} does not exist (yet)"
+                echo >> "${BACKUP_DIR}/log"
+                logger -s -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
         else
                 logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}"
                 echo -n " collectd" >> "${BACKUP_DIR}/log"
@@ -63,7 +67,8 @@ restore_database() {
         fi
 
         if [ ! -d "${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}" ]; then
-                logger -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME} does not exist (yet)"
+                echo >> "${BACKUP_DIR}/log"
+                logger -s -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
         else
                 logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}"
                 echo -n " nlbwmon" >> "${BACKUP_DIR}/log"
@@ -72,7 +77,8 @@ restore_database() {
         fi
 
         if [ ! -d "${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}" ]; then
-                logger -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME} does not exist (yet)"
+                echo >> "${BACKUP_DIR}/log"
+                logger -s -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
         else
                 logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}"
                 echo -n " vnstat" >> "${BACKUP_DIR}/log"

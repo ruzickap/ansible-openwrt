@@ -1,9 +1,9 @@
 # ansible-openwrt
 
-Ansible playbooks configuring Openwrt devices (Wi-Fi routers)
+Ansible playbooks configuring OpenWrt devices (Wi-Fi routers)
 
-> 💡 Always build your own OpenWrt Firmware with installed packages (it will
-> save disk space)
+> 💡 Always [build](https://firmware-selector.openwrt.org/) your own OpenWrt
+> Firmware with installed packages (it will save disk space)
 
 ## Flash router and allow SSH access to the router form the WAN
 

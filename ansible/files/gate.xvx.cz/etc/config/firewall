@@ -24,11 +24,11 @@ config zone
 	option mtu_fix		1
 
 config zone
-    option name 'guest'
-    option network 'guest'
-    option input 'REJECT'
-    option forward 'REJECT'
-    option output 'ACCEPT'
+	option name 'guest'
+	option network 'guest'
+	option input 'REJECT'
+	option forward 'REJECT'
+	option output 'ACCEPT'
 
 config forwarding
 	option src		lan
@@ -36,8 +36,8 @@ config forwarding
 
 # Allow Guest -> Internet
 config forwarding
-    option src 'guest'
-    option dest 'wan'
+	option src 'guest'
+	option dest 'wan'
 
 # We need to accept udp packets on port 68,
 # see https://dev.openwrt.org/ticket/4108
@@ -204,12 +204,11 @@ config rule
 
 # Allow Guest -> Router
 config rule 'guest_dhcp'
-    option name 'Allow-DHCP-Guest'
-    option src 'guest'
-    option src_port '67'
-    option dest_port '67'
-    option proto 'udp'
-    option target 'ACCEPT'
+	option name 'Allow-DHCP-Guest'
+	option src 'guest'
+	option dest_port '67'
+	option proto 'udp'
+	option target 'ACCEPT'
 
 config rule 'guest_dns'
 	option name 'Allow-DNS-Guest'
