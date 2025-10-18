@@ -70,7 +70,7 @@ luci_homepage_openwrt_widget_password_hash: !vault |
   3463396361303038640a393337376535316234383234623434353063353539346334356165386664
   61353537303163353765666330643735656134663561323135346464303432363835
 
-luci_statistics_collectd_processes_processes: "cloudflared collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd vsftpd wpa_supplicant"
+luci_statistics_collectd_processes_processes: "cloudflared collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd wpa_supplicant"
 
 luci_statistics_collectd_tcpconns_localports: "21 22 443"
 
@@ -140,7 +140,6 @@ openwrt_packages:
   - rsync
   - telnet-bsd
   - transmission-web
-  - vsftpd
   # keep-sorted end
 
 root_password: !vault |
@@ -162,10 +161,6 @@ usb_disk_device: sda
 usb_disk_fs_type: btrfs
 
 usb_disk_mount_path: /mnt
-
-wifi_2ghz_channel: 11
-
-wifi_5ghz_channel: 108
 
 wifi_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
