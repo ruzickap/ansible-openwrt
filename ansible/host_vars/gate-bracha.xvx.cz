@@ -83,10 +83,6 @@ usb_disk_fs_type: btrfs
 
 usb_disk_mount_path: /mnt
 
-wifi_2ghz_channel: 11
-
-wifi_5ghz_channel: 40
-
 wifi_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   36633131363533633466366534643164346161346530653962353866306262303139616637376432

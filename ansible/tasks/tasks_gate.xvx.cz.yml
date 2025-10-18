@@ -7,8 +7,8 @@
   ansible.builtin.file:
     path: "{{ usb_disk_mount_path }}/{{ item.name }}"
     state: directory
-    owner: ftp
-    group: ftp
+    owner: root
+    group: root
     mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
   loop:
     - name: media
@@ -101,35 +101,3 @@
     src: files/{{ inventory_hostname }}/etc/config/rpcd.j2
     mode: u=rw,g=r,o=r
   no_log: true
-
-############################################
-# vsftpd
-############################################
-
-- name: Configure vfsftpd (/etc/vsftpd.conf)
-  community.general.ini_file:
-    path: /etc/vsftpd.conf
-    no_extra_spaces: true
-    option: "{{ item.option }}"
-    value: "{{ item.value }}"
-    mode: u=rw,g=,o=
-  loop:
-    - option: anon_root
-      value: "{{ usb_disk_mount_path }}/media/"
-    - option: write_enable
-      value: "NO"
-    - option: anonymous_enable
-      value: "YES"
-    - option: syslog_enable
-      value: "YES"
-    - option: local_enable
-      value: "NO"
-    - option: hide_ids
-      value: "YES"
-
-- name: Chnage ftp user home directory
-  ansible.builtin.replace:
-    path: /etc/passwd
-    regexp: "^ftp:\\*:55:55:ftp:/home/ftp:/bin/false"
-    replace: "ftp:*:55:55:ftp:{{ usb_disk_mount_path }}/media:/bin/false"
-  changed_when: false
