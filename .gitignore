@@ -5,6 +5,9 @@
 # pre-commit config file
 .pre-commit-config.yaml
 
+# Byte-compiled files
+__pycache__/
+
 # Ansible vault password file
 vault-*.password
 # keep-sorted end
