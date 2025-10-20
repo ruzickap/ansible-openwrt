@@ -1,5 +1,5 @@
 - name: Install Python
-  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-light python3-logging python3-urllib python3-decimal )
+  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-codecs python3-light python3-logging python3-urllib python3-decimal )
   changed_when: false
 
 - name: Configure hostname

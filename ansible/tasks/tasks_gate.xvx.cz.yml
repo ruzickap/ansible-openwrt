@@ -29,8 +29,8 @@
 
 - name: Configure cloudflared
   ansible.builtin.shell: |
-    uci set cloudflared.@cloudflared[0].enabled=1 &&
-    uci set cloudflared.@cloudflared[0].token={{ cloudflare_api_key }} &&
+    uci set cloudflared.@cloudflared[0].enabled=1
+    uci set cloudflared.@cloudflared[0].token={{ cloudflare_api_key }}
     uci set cloudflared.@cloudflared[0].tag=fqdn={{ inventory_hostname }}
   changed_when: false
 
@@ -101,3 +101,19 @@
     src: files/{{ inventory_hostname }}/etc/config/rpcd.j2
     mode: u=rw,g=r,o=r
   no_log: true
+
+############################################
+# Samba
+############################################
+
+- name: Configure Samba share for media
+  ansible.builtin.shell: |
+    uci show samba4 | grep -q sambashare || uci add samba4 sambashare && \
+    uci set samba4.@sambashare[-1].guest_only=yes && \
+    uci set samba4.@sambashare[-1].force_root=1 && \
+    uci set samba4.@sambashare[-1].name=media && \
+    uci set samba4.@sambashare[-1].inherit_owner=yes && \
+    uci set samba4.@sambashare[-1].guest_ok=yes && \
+    uci set samba4.@sambashare[-1].read_only=yes && \
+    uci set samba4.@sambashare[-1].path={{ usb_disk_mount_path }}/media
+  changed_when: false

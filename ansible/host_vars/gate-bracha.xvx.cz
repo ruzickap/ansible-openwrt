@@ -62,6 +62,7 @@ openwrt_packages:
   - mc
   - msmtp-mta
   - openssh-sftp-server
+  - python3-codecs
   - python3-decimal
   - python3-light
   - python3-logging
