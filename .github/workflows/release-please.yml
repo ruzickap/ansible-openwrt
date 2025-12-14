@@ -10,14 +10,15 @@ on:
     branches:
       - main
 
-permissions:
-  contents: write
-  issues: write
-  pull-requests: write
+permissions: read-all
 
 jobs:
   release-please:
     runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
     steps:
       - name: Create release with Release Please
         uses: googleapis/release-please-action@16a9c90856f42705d54a6fda1823352bdc62cf38 # v4.4.0
