@@ -1,5 +1,20 @@
 # Changelog
 
+## [2.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.0.0...v2.1.0) (2026-02-15)
+
+
+### Features
+
+* add default github repo files ([#64](https://github.com/ruzickap/ansible-openwrt/issues/64)) ([eba8100](https://github.com/ruzickap/ansible-openwrt/commit/eba81009dd30aa9afcf9aee4e438b2b79e84e9c8))
+* add samba ([#80](https://github.com/ruzickap/ansible-openwrt/issues/80)) ([cdfc357](https://github.com/ruzickap/ansible-openwrt/commit/cdfc357799d90daf97d14bdd457e92ee4d88cb80))
+* add/update default repository files ([#68](https://github.com/ruzickap/ansible-openwrt/issues/68)) ([56385f3](https://github.com/ruzickap/ansible-openwrt/commit/56385f3aaa5bafad4bcb9746953eb6b4f87476b8))
+* add/update default repository files ([#69](https://github.com/ruzickap/ansible-openwrt/issues/69)) ([2ff267b](https://github.com/ruzickap/ansible-openwrt/commit/2ff267b736526418184c5600e4485e9929f7203c))
+* add/update default repository files ([#72](https://github.com/ruzickap/ansible-openwrt/issues/72)) ([f02d5b3](https://github.com/ruzickap/ansible-openwrt/commit/f02d5b3b49b0f1a6af827378914f21952bfd8bd5))
+* add/update default repository files ([#74](https://github.com/ruzickap/ansible-openwrt/issues/74)) ([4127f27](https://github.com/ruzickap/ansible-openwrt/commit/4127f2706f4793ca4a06e60b097ba076fcd3441f))
+* **gh:** add default github repo files ([#62](https://github.com/ruzickap/ansible-openwrt/issues/62)) ([3d6dcbe](https://github.com/ruzickap/ansible-openwrt/commit/3d6dcbe3cab77a2581250498047fe91cb293f7bc))
+* use mailtrap and add samba4 ([#65](https://github.com/ruzickap/ansible-openwrt/issues/65)) ([2e02ecf](https://github.com/ruzickap/ansible-openwrt/commit/2e02ecf8720282dc4c341e4d75263735375023ca))
+* **wireless:** update wireless configuration options ([#81](https://github.com/ruzickap/ansible-openwrt/issues/81)) ([e7bffec](https://github.com/ruzickap/ansible-openwrt/commit/e7bffec6398528cacc52c8d80483d0d098b91df7))
+
 ## [2.0.0](https://github.com/ruzickap/ansible-openwrt/compare/v1.2.0...v2.0.0) (2025-03-25)
 
 
