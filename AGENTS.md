@@ -29,7 +29,7 @@ shellcheck run_openwrt.sh
 shfmt --case-indent --indent 2 --space-redirects -d run_openwrt.sh
 
 # Lint Markdown
-rumdl *.md
+rumdl ./*.md
 
 # Check links
 lychee --config lychee.toml .
