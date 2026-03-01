@@ -1,109 +1,166 @@
 # AI Agent Guidelines
 
-## Overview
+## Project Overview
 
-This document provides guidelines and best practices for AI agents working
-on this repository. Follow these standards to ensure consistency, quality,
-and maintainability across all contributions.
+Ansible playbooks for configuring OpenWrt devices (Wi-Fi routers).
+Repository: `ruzickap/ansible-openwrt`. License: Apache 2.0.
 
-## Table of Contents
+Target hosts: `gate.xvx.cz` (ASUS RT-AX53U) and
+`gate-bracha.xvx.cz` (ZyXEL NBG6617), defined in
+`ansible/inventory/hosts`.
 
-- [AI Agent Guidelines](#ai-agent-guidelines)
-  - [Overview](#overview)
-  - [Table of Contents](#table-of-contents)
-  - [Markdown Files](#markdown-files)
-    - [Linting and Formatting](#linting-and-formatting)
-    - [Markdown Best Practices](#markdown-best-practices)
-  - [Version Control](#version-control)
-    - [Commit Messages](#commit-messages)
-      - [Format Rules](#format-rules)
-      - [Commit Message Structure](#commit-message-structure)
-        - [Example](#example)
-    - [Branching](#branching)
-    - [Pull Requests](#pull-requests)
-  - [Quality \& Best Practices](#quality--best-practices)
+## Build / Run / Lint Commands
 
-## Markdown Files
+```bash
+# Run the full playbook (requires vault password file)
+cd ansible && ansible-playbook --diff main.yml -i inventory/hosts
 
-### Linting and Formatting
+# Or use the wrapper script
+./run_openwrt.sh
 
-- **Markdown compliance**: Ensure all Markdown files pass `rumdl` checks
-- **Code blocks**: For `bash`/`shell` code blocks:
-  - Verify they pass `shellcheck` validation
-  - Format with `shfmt` for consistency
+# Install Ansible Galaxy dependencies
+ansible-galaxy collection install -r ansible/requirements.yml
 
-### Markdown Best Practices
+# Lint Ansible playbooks
+ansible-lint ansible/
 
-- Use proper heading hierarchy (don't skip levels)
-- Wrap lines at 80 characters for readability
-- Use semantic HTML only when necessary
-- Prefer code fences over inline code for multi-line examples
+# Lint shell scripts
+shellcheck run_openwrt.sh
+shfmt --case-indent --indent 2 --space-redirects -d run_openwrt.sh
+
+# Lint Markdown
+rumdl *.md
+
+# Check links
+lychee --config lychee.toml .
+
+# Lint GitHub Actions workflows
+actionlint
+
+# Validate JSON files
+jsonlint --comments .github/renovate.json5
+```
+
+There is no test suite. This is an infrastructure-as-code repository.
+CI runs MegaLinter (`.mega-linter.yml`) which orchestrates all
+linting. Validate changes locally with the tools listed above.
+
+## Ansible Code Style
+
+- **Always use FQCN** (Fully Qualified Collection Names) for all
+  modules: `ansible.builtin.copy`, `ansible.builtin.command`,
+  `community.general.opkg` -- never bare module names
+- **Indentation**: 2 spaces, no tabs, throughout all YAML files
+- **Variables**: `lowercase_with_underscores` for Ansible variables
+  (e.g., `wifi_password`, `usb_disk_mount_path`)
+- **Secrets**: Encrypt with Ansible Vault (`!vault`); use `no_log: true`
+  on tasks that handle sensitive data
+- **Idempotency**: Use `changed_when: false` on commands that do not
+  alter state (queries, reads)
+- **Templates**: Jinja2 files use `.j2` extension; placed under
+  `ansible/files/`
+- **Host-specific files**: Organized under
+  `ansible/files/<hostname>/etc/...`
+- **Host-specific tasks**: `ansible/tasks/tasks_<hostname>.yml`,
+  loaded dynamically via `include_tasks`
+- **Host-specific variables**: `ansible/host_vars/<hostname>`
+- **Global variables**: `ansible/group_vars/all`
+- **Handlers**: Defined in `ansible/handlers/main.yml`; use for
+  deferred service actions
+- **Error handling**: Use `block`/`rescue` pattern where failures
+  are expected (e.g., USB disk mounting)
+- **List ordering**: Use `# keep-sorted start` / `# keep-sorted end`
+  comment markers around sorted lists (e.g., package lists)
+
+### Ansible-lint Exceptions
+
+Configured in `ansible/.ansible-lint.yml`:
+
+- `package-latest` -- allowed
+- `yaml[comments]` -- allowed
+- `yaml[document-start]` -- allowed
+- `yaml[line-length]` -- allowed
+
+## Shell Scripts
+
+- **Linting**: Must pass `shellcheck` (SC2317 is excluded globally)
+- **Formatting**: `shfmt --case-indent --indent 2 --space-redirects`
+- **Variables**: Use uppercase with braces: `${MY_VARIABLE}`
+- **Shell code blocks** in Markdown (tagged `bash`, `shell`, or `sh`)
+  are extracted and validated by CI
+
+## Markdown
+
+- Must pass `rumdl` checks (config in `.rumdl.toml`)
+- Wrap lines at 72 characters
+- Use proper heading hierarchy (no skipped levels)
 - Include language identifiers in code fences
+- `CHANGELOG.md` is excluded from linting and link checking
+
+## JSON Files
+
+- Must pass `jsonlint --comments`
+- `.devcontainer/devcontainer.json` is excluded
+
+## Link Checking
+
+- Uses `lychee` (config in `lychee.toml`)
+- Accepts status 200 and 429; caches results
+- Excludes: template variables, shell variables, private IPs
+- Excluded files: `CHANGELOG.md`, `package-lock.json`
+
+## GitHub Actions Workflows
+
+- Validate with `actionlint` after any workflow change
+- Pin all actions to full SHA digests (not tags)
+- Use minimal permissions: `permissions: read-all` at workflow level,
+  scope per job only as needed
+- Use `timeout-minutes` on all jobs
+
+## Security Scanning (CI)
+
+- **Checkov**: Skips `CKV_GHA_7` (workflow_dispatch inputs)
+- **DevSkim**: Ignores DS162092, DS137138; excludes `CHANGELOG.md`
+- **KICS**: Fails only on HIGH severity (`--fail-on high`)
+- **Trivy**: HIGH and CRITICAL only, ignores unfixed vulnerabilities
+- Never commit plaintext secrets; use Ansible Vault encryption
 
 ## Version Control
 
 ### Commit Messages
 
-#### Format Rules
+Conventional commit format. Subject line rules:
 
-- **Conventional commit format**: Use standard types (`feat`, `fix`, `docs`,
-  `chore`, `refactor`, `test`, `style`, `perf`, `ci`, `build`, `revert`)
-- **Line limits**: Subject ≤ 80 characters, body lines ≤ 80 characters
-- **Single blank line**: Between subject and body, between body paragraphs
-
-#### Commit Message Structure
-
-- **Subject line**:
-  - Imperative mood (e.g., "add" not "added" or "adds")
-  - Use lower case (except for proper nouns and abbreviations)
-  - No period at the end
-  - Maximum 80 characters
-  - Format: `<type>: <description>`
-
-- **Body** (optional but recommended for non-trivial changes):
-  - Explain **what** changed and **why**
-  - Wrap lines at 80 characters
-  - Use Markdown formatting
-  - Separate paragraphs with blank lines
-  - Reference issues using keywords: `Fixes`, `Closes`, `Resolves`
-
-##### Example
-
-```markdown
-feat: add automated dependency updates
-
-- Implement Dependabot configuration
-- Configure weekly security updates
-- Add auto-merge for patch/minor updates
-
-Resolves: #123
-```
+- Format: `<type>: <description>`
+- Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`,
+  `style`, `perf`, `ci`, `build`, `revert`
+- Imperative mood, lowercase, no trailing period
+- Maximum 72 characters (subject); 72 characters (body lines)
+- Body: explain what and why, reference issues with
+  `Fixes`/`Closes`/`Resolves`
 
 ### Branching
 
-- **Naming convention**: Follow the
-  [Conventional Branch](https://conventional-branch.github.io/)
-  specification
+Conventional branch format: `<type>/<description>`
 
-- **Naming guidelines**:
-  - Keep branch names concise and descriptive
-  - Use kebab-case (lower case with hyphens)
-  - Include issue number when applicable: `feat/123-add-feature-name`
+- `feature/` or `feat/`, `bugfix/` or `fix/`, `hotfix/`,
+  `release/`, `chore/`
+- Lowercase, hyphens, no consecutive/leading/trailing hyphens
+- Include issue number when applicable:
+  `feature/issue-123-add-wifi-config`
 
 ### Pull Requests
 
-- **Always create draft PR** - Create pull requests as drafts initially
-- **Title format** - Use conventional commit format (`feat: add new feature`)
-- **Description** - Include clear explanation of changes and motivation
-- **Link issues** - Reference related issues using keywords (Fixes, Closes,
-  Resolves)
+- Always create as **draft** initially
+- Title must follow conventional commit format
+- Include clear description and link related issues
 
-## Quality & Best Practices
+## Quality Checklist
 
-- Pass pre-commit hooks
-- Follow project coding standards
-- Include tests for new functionality
-- Update documentation for user-facing changes
-- Make atomic, focused commits
-- Explain reasoning behind changes
-- Maintain consistent formatting
+- [ ] All YAML uses 2-space indentation
+- [ ] Ansible modules use FQCN
+- [ ] Secrets are Vault-encrypted with `no_log: true`
+- [ ] Shell scripts pass `shellcheck` and `shfmt`
+- [ ] Markdown wraps at 72 characters and passes `rumdl`
+- [ ] GitHub Actions pinned to SHA with `timeout-minutes`
+- [ ] Commit message follows conventional format
