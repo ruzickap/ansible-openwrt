@@ -20,7 +20,7 @@ on:
   push:
     branches:
       - main
-      - "!renovate/*"
+      - "!chore/renovate/*"
   schedule:
     - cron: 0 0-3 * * 0
 
@@ -28,16 +28,9 @@ env:
   # keep-sorted start
   # Set log level for debugging (info, debug, or trace) https://docs.renovatebot.com/troubleshooting/#log-debug-levels
   LOG_LEVEL: ${{ inputs.logLevel || 'debug' }}
-  # Enable automatic merging of dependency updates
-  RENOVATE_AUTOMERGE: "true"
-  # Set automerge type to branch (merge directly without PR)
-  RENOVATE_AUTOMERGE_TYPE: branch
   # Enable dry-run mode for non-main branches to preview changes (https://docs.renovatebot.com/self-hosted-configuration/#dryrun)
   # Run renovate in dry-run mode if executed in branches other than main to prevent updating versions in PRs/branches
   RENOVATE_DRY_RUN: ${{ inputs.dryRun || ( github.head_ref || github.ref_name ) != 'main' || false }}
-  # Use platform-native commit signing
-  # https://docs.renovatebot.com/configuration-options/#platformcommit
-  RENOVATE_PLATFORM_COMMIT: "true"
   # Target repository for Renovate to update
   # https://docs.renovatebot.com/self-hosted-configuration/#repositories
   RENOVATE_REPOSITORIES: ${{ github.repository }}
@@ -51,17 +44,17 @@ permissions: read-all
 jobs:
   renovate:
     runs-on: ubuntu-24.04-arm
+    timeout-minutes: 5
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-    permissions: write-all
     steps:
-      - uses: actions/create-github-app-token@67018539274d69449ef7c02e8e71183d1719ab42 # v2.1.4
+      - uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         id: app-token
         with:
           app-id: ${{ secrets.MY_RENOVATE_GITHUB_APP_ID }}
           private-key: ${{ secrets.MY_RENOVATE_GITHUB_PRIVATE_KEY }}
 
       - name: 💡 Self-hosted Renovate
-        uses: renovatebot/github-action@2d941ef4e268e53affdc1f11365c69a73e544f50 # v43.0.14
+        uses: renovatebot/github-action@0b17c4eb901eca44d018fb25744a50a74b2042df # v46.1.4
         with:
           token: ${{ steps.app-token.outputs.token }}
