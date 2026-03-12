@@ -69,7 +69,7 @@ linting. Validate changes locally with the tools listed above.
   deferred service actions
 - **Error handling**: Use `block`/`rescue` pattern where failures
   are expected (e.g., USB disk mounting)
-- **List ordering**: Use `# keep-sorted start` / `# keep-sorted end`
+- **List ordering**: Use `# keep-sorted (start|end)`
   comment markers around sorted lists (e.g., package lists)
 
 ### Ansible-lint Exceptions

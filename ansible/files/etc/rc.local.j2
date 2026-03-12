@@ -7,11 +7,16 @@ sleep 20
 sendmail -t << EOF
 To: {{ notification_email }}
 Subject: Reboot {{ inventory_hostname }} - $(date "+%Y-%m-%d %H:%M")
-
-
-OpenWRT rebooted:
-
-$(date)
+<html>
+<body>
+    <h4>🔄 {{ inventory_hostname }} rebooted: $(date)</h4>
+    <summary>📋 Last logs:</summary>
+    <pre style="font-size: 10px;">
+$(tail -150 /var/log/system.log)
+    </pre>
+    </details>
+</body>
+</html>
 EOF
 ) &
 

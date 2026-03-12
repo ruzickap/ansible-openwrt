@@ -12,6 +12,12 @@
     uci set system.@system[0].zonename={{ time_zone_name }}
   changed_when: false
 
+- name: Configure persistent logging
+  ansible.builtin.shell: |
+    uci set system.@system[0].log_file=/var/log/system.log &&
+    uci set system.@system[0].log_size=512
+  changed_when: false
+
 - name: Create dropbear_*_host_key for dropbear
   ansible.builtin.copy:
     dest: /etc/dropbear/{{ item }}

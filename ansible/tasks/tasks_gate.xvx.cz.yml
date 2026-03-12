@@ -117,3 +117,13 @@
     uci set samba4.@sambashare[-1].read_only=yes && \
     uci set samba4.@sambashare[-1].path={{ usb_disk_mount_path }}/media
   changed_when: false
+
+############################################
+# openNDS
+############################################
+
+- name: Configure openNDS
+  ansible.builtin.template:
+    dest: /etc/config/opennds
+    src: files/{{ inventory_hostname }}/etc/config/opennds.j2
+    mode: u=rw,g=r,o=r
