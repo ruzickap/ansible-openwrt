@@ -2,186 +2,165 @@
 
 ## Project Overview
 
-Ansible playbooks for configuring OpenWrt devices (Wi-Fi routers). The repo
-contains Ansible tasks, Jinja2 templates, shell scripts, and CI workflows.
-There are **no tests** — validation is done via linters and pre-commit hooks.
+Ansible playbooks for configuring OpenWrt devices (Wi-Fi routers).
+Repository: `ruzickap/ansible-openwrt`. License: Apache 2.0.
 
-## Build & Run Commands
+Target hosts: `gate.xvx.cz` (ASUS RT-AX53U) and
+`gate-bracha.xvx.cz` (ZyXEL NBG6617), defined in
+`ansible/inventory/hosts`.
+
+## Build / Run / Lint Commands
 
 ```bash
-# Run the full Ansible playbook against all hosts
+# Run the full playbook (requires vault password file)
 cd ansible && ansible-playbook --diff main.yml -i inventory/hosts
 
+# Or use the wrapper script
+./run_openwrt.sh
+
 # Install Ansible Galaxy dependencies
-ansible-galaxy install -r ansible/requirements.yml
-
-# Run pre-commit hooks on all files
-pre-commit run --all-files
-
-# Run a single pre-commit hook
-pre-commit run <hook-id> --all-files   # e.g.: shellcheck, rumdl-fmt, yamllint
+ansible-galaxy collection install -r ansible/requirements.yml
 
 # Lint Ansible playbooks
 ansible-lint ansible/
 
 # Lint shell scripts
 shellcheck run_openwrt.sh
-shellcheck --exclude=SC2317 <file>
-
-# Format shell scripts
-shfmt --case-indent --indent 2 --space-redirects <file>
+shfmt --case-indent --indent 2 --space-redirects -d run_openwrt.sh
 
 # Lint Markdown
-rumdl <file>
+rumdl ./*.md
 
 # Check links
-lychee --cache <file-or-directory>
+lychee --config lychee.toml .
 
-# Validate GitHub Actions workflows
+# Lint GitHub Actions workflows
 actionlint
+
+# Validate JSON files
+jsonlint --comments .github/renovate.json5
 ```
 
-## Repository Structure
+There is no test suite. This is an infrastructure-as-code repository.
+CI runs MegaLinter (`.mega-linter.yml`) which orchestrates all
+linting. Validate changes locally with the tools listed above.
 
-```text
-ansible/                    # Ansible root (run playbooks from here)
-├── ansible.cfg             # Ansible config (vault password, no host key check)
-├── main.yml                # Entry playbook — imports common + per-host tasks
-├── requirements.yml        # Galaxy dependencies (community.general)
-├── inventory/hosts         # Inventory file with OpenWrt hosts
-├── group_vars/all          # Shared variables (DNS, timezone, subnet)
-├── host_vars/              # Per-host variables (encrypted with Ansible Vault)
-├── tasks/
-│   ├── common.yml          # Shared tasks for all routers
-│   └── tasks_<host>.yml    # Host-specific tasks (named by inventory_hostname)
-├── handlers/main.yml       # Ansible handlers
-└── files/                  # Templates (.j2) and static config files
-run_openwrt.sh              # Convenience wrapper to run the playbook
-```
+## Ansible Code Style
 
-## Ansible Style Guide
+- **Always use FQCN** (Fully Qualified Collection Names) for all
+  modules: `ansible.builtin.copy`, `ansible.builtin.command`,
+  `community.general.opkg` -- never bare module names
+- **Indentation**: 2 spaces, no tabs, throughout all YAML files
+- **Variables**: `lowercase_with_underscores` for Ansible variables
+  (e.g., `wifi_password`, `usb_disk_mount_path`)
+- **Secrets**: Encrypt with Ansible Vault (`!vault`); use `no_log: true`
+  on tasks that handle sensitive data
+- **Idempotency**: Use `changed_when: false` on commands that do not
+  alter state (queries, reads)
+- **Templates**: Jinja2 files use `.j2` extension; placed under
+  `ansible/files/`
+- **Host-specific files**: Organized under
+  `ansible/files/<hostname>/etc/...`
+- **Host-specific tasks**: `ansible/tasks/tasks_<hostname>.yml`,
+  loaded dynamically via `include_tasks`
+- **Host-specific variables**: `ansible/host_vars/<hostname>`
+- **Global variables**: `ansible/group_vars/all`
+- **Handlers**: Defined in `ansible/handlers/main.yml`; use for
+  deferred service actions
+- **Error handling**: Use `block`/`rescue` pattern where failures
+  are expected (e.g., USB disk mounting)
+- **List ordering**: Use `# keep-sorted (start|end)`
+  comment markers around sorted lists (e.g., package lists)
 
-### Task Naming
+### Ansible-lint Exceptions
 
-- Every task MUST have a descriptive `name:` field
-- Use sentence case: `Configure WiFi`, `Install packages`
+Configured in `ansible/.ansible-lint.yml`:
 
-### Module Usage
-
-- Use fully qualified collection names: `ansible.builtin.copy`,
-  `community.general.opkg` — never short names like `copy` or `shell`
-- Prefer `ansible.builtin.command` over `ansible.builtin.shell` unless
-  pipes/redirects are needed
-- Use `ansible.builtin.template` for files with variables (`.j2` extension)
-- Use `ansible.builtin.copy` for static files
-- Set `changed_when: false` on `command`/`shell` tasks that are read-only
-  or idempotent UCI operations
-
-### File Permissions
-
-- Use symbolic notation: `mode: u=rw,g=r,o=r` (not `0644`)
-- Sensitive files: `mode: u=rw,g=,o=`
-
-### Secrets & Vault
-
-- Vault password file: `ansible/vault-openwrt.password` (gitignored)
-- Host variables with secrets go in `ansible/host_vars/` (vault-encrypted)
-- Use `no_log: true` on tasks that handle passwords, API keys, or WiFi
-  credentials
-
-### Per-Host Task Files
-
-- Named `tasks/tasks_<inventory_hostname>.yml`
-- Included dynamically via `include_tasks: tasks/tasks_{{ inventory_hostname }}.yml`
-
-## YAML Style
-
-- **Indentation**: 2 spaces, no tabs
-- **Document start marker**: Not required (skipped in ansible-lint)
-- **Line length**: No enforced limit for YAML (skipped in ansible-lint)
-- **Comments**: No enforced style for comment spacing
-- **Linter**: yamllint with `relaxed` profile, `line-length` disabled
-- **Sorted blocks**: Use `# keep-sorted (start|end)`
-  comments to maintain alphabetical ordering
+- `package-latest` -- allowed
+- `yaml[comments]` -- allowed
+- `yaml[document-start]` -- allowed
+- `yaml[line-length]` -- allowed
 
 ## Shell Scripts
 
-- **Shebang**: `#!/usr/bin/env bash`
-- **Set options**: `set -eux` (exit on error, undefined vars, trace)
-- **Formatter**: `shfmt --case-indent --indent 2 --space-redirects`
-- **Linter**: `shellcheck` (SC2317 excluded globally)
+- **Linting**: Must pass `shellcheck` (SC2317 is excluded globally)
+- **Formatting**: `shfmt --case-indent --indent 2 --space-redirects`
 - **Variables**: Use uppercase with braces: `${MY_VARIABLE}`
+- **Shell code blocks** in Markdown (tagged `bash`, `shell`, or `sh`)
+  are extracted and validated by CI
 
 ## Markdown
 
-- **Linter**: `rumdl` (Rust-based, config in `.rumdl.toml`)
-- **Line length**: 80 characters (code blocks exempt)
-- **Heading hierarchy**: Don't skip levels
-- **Code fences**: Always include language identifier (`bash`, `console`,
-  `json`, `text`)
-- **Link checking**: `lychee` validates URLs (config in `lychee.toml`)
-- **Excluded from linting**: `CHANGELOG.md`
+- Must pass `rumdl` checks (config in `.rumdl.toml`)
+- Wrap lines at 72 characters
+- Use proper heading hierarchy (no skipped levels)
+- Include language identifiers in code fences
+- `CHANGELOG.md` is excluded from linting and link checking
 
-## GitHub Actions
+## JSON Files
 
-- **Validate with**: `actionlint` after any workflow change
-- **Permissions**: Always use `permissions: read-all`
-- **Pin actions**: Use full SHA commits, never tags
-  (`uses: actions/checkout@<full-sha> # v6.0.2`)
-- **Checkov skip**: `CKV_GHA_7` (workflow_dispatch inputs)
+- Must pass `jsonlint --comments`
+- `.devcontainer/devcontainer.json` is excluded
+
+## Link Checking
+
+- Uses `lychee` (config in `lychee.toml`)
+- Accepts status 200 and 429; caches results
+- Excludes: template variables, shell variables, private IPs
+- Excluded files: `CHANGELOG.md`, `package-lock.json`
+
+## GitHub Actions Workflows
+
+- Validate with `actionlint` after any workflow change
+- Pin all actions to full SHA digests (not tags)
+- Use minimal permissions: `permissions: read-all` at workflow level,
+  scope per job only as needed
+- Use `timeout-minutes` on all jobs
+
+## Security Scanning (CI)
+
+- **Checkov**: Skips `CKV_GHA_7` (workflow_dispatch inputs)
+- **DevSkim**: Ignores DS162092, DS137138; excludes `CHANGELOG.md`
+- **KICS**: Fails only on HIGH severity (`--fail-on high`)
+- **Trivy**: HIGH and CRITICAL only, ignores unfixed vulnerabilities
+- Never commit plaintext secrets; use Ansible Vault encryption
 
 ## Version Control
 
 ### Commit Messages
 
-- **Format**: Conventional commits — `<type>: <description>`
-- **Types**: `feat`, `fix`, `docs`, `chore`, `refactor`, `ci`, `style`,
-  `perf`, `test`, `build`, `revert`
-- **Subject**: Imperative mood, lowercase, no period, ≤ 72 characters
-- **Body**: Optional, wrap at 72 characters, explain what and why
-- **Validated by**: commitizen, gitlint, commit-check
+Conventional commit format. Subject line rules:
 
-### Branches
+- Format: `<type>: <description>`
+- Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`,
+  `style`, `perf`, `ci`, `build`, `revert`
+- Imperative mood, lowercase, no trailing period
+- Maximum 72 characters (subject); 72 characters (body lines)
+- Body: explain what and why, reference issues with
+  `Fixes`/`Closes`/`Resolves`
 
-- Follow [Conventional Branch](https://conventional-branch.github.io/):
-  `<type>/<description>`
-- Types: `feature/`, `feat/`, `bugfix/`, `fix/`, `hotfix/`, `release/`,
-  `chore/`
-- Use lowercase, hyphens, no consecutive/trailing hyphens
-- No direct commits to `main` or `master` (enforced by pre-commit)
+### Branching
+
+Conventional branch format: `<type>/<description>`
+
+- `feature/` or `feat/`, `bugfix/` or `fix/`, `hotfix/`,
+  `release/`, `chore/`
+- Lowercase, hyphens, no consecutive/leading/trailing hyphens
+- Include issue number when applicable:
+  `feature/issue-123-add-wifi-config`
 
 ### Pull Requests
 
-- Create as **draft** initially
+- Always create as **draft** initially
 - Title must follow conventional commit format
-- Reference issues with `Fixes`, `Closes`, or `Resolves`
+- Include clear description and link related issues
 
-## CI Pipeline (MegaLinter)
+## Quality Checklist
 
-Runs on push to non-main branches. Key linters:
-
-| Tool          | Scope                   | Config                  |
-| ------------- | ----------------------- | ----------------------- |
-| ansible-lint  | Ansible playbooks       | `ansible/.ansible-lint` |
-| shellcheck    | Shell scripts + MD code | SC2317 excluded         |
-| shfmt         | Shell formatting        | 2-space, case-indent    |
-| rumdl         | Markdown                | `.rumdl.toml`           |
-| yamllint      | YAML files              | relaxed profile         |
-| lychee        | URL validation          | `lychee.toml`           |
-| actionlint    | GitHub Actions          | Built-in rules          |
-| checkov       | IaC security            | `.checkov.yml`          |
-| devskim       | Security patterns       | DS162092,DS137138 skip  |
-| trivy         | Vulnerabilities         | HIGH/CRITICAL only      |
-| codespell     | Spelling                | Default dictionary      |
-| prettier      | Non-Markdown formatting | Excludes `.md` files    |
-
-## Pre-commit Hooks
-
-Configured via `.pre-commit-config.yaml` (symlinked, gitignored). Install:
-
-```bash
-pre-commit install && pre-commit install --hook-type commit-msg
-```
-
-Key hooks: shellcheck, shfmt, rumdl-fmt, yamllint, prettier, actionlint,
-gitleaks, commitizen, codespell, keep-sorted.
+- [ ] All YAML uses 2-space indentation
+- [ ] Ansible modules use FQCN
+- [ ] Secrets are Vault-encrypted with `no_log: true`
+- [ ] Shell scripts pass `shellcheck` and `shfmt`
+- [ ] Markdown wraps at 72 characters and passes `rumdl`
+- [ ] GitHub Actions pinned to SHA with `timeout-minutes`
+- [ ] Commit message follows conventional format
