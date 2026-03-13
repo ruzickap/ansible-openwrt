@@ -19,13 +19,17 @@
   changed_when: false
 
 - name: Create dropbear_*_host_key for dropbear
-  ansible.builtin.copy:
-    dest: /etc/dropbear/{{ item }}
-    src: files/{{ inventory_hostname }}/etc/dropbear/{{ item }}
-    mode: u=rw,g=,o=
+  shell: |
+    python3 - <<'PY'
+    import base64, pathlib
+    data = base64.b64decode("{{ item.content }}")
+    pathlib.Path("{{ item.file }}").write_bytes(data)
+    PY
   loop:
-    - dropbear_ed25519_host_key
-    - dropbear_rsa_host_key
+    - file: /etc/dropbear/dropbear_ed25519_host_key
+      content: "{{ dropbear_ed25519_host_key }}"
+    - file: /etc/dropbear/dropbear_rsa_host_key
+      content: "{{ dropbear_rsa_host_key }}"
 
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
   ansible.builtin.template:

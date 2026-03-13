@@ -1,0 +1,14 @@
+[tools]
+# ansible = "latest"
+fnox = "latest"
+
+[plugins]
+fnox-env = "https://github.com/jdx/mise-env-fnox"
+
+[env]
+_.fnox-env = { tools = true }
+
+[tasks.run]
+description = "Run Ansible playbook"
+dir = "ansible"
+run = "ansible-playbook --diff main.yml -i inventory/hosts"

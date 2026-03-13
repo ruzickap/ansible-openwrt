@@ -1,0 +1,16 @@
+[providers]
+ps = { type = "aws-ps", profile = "my-aws", region = "eu-central-1" }
+
+[secrets]
+GATE_BRACHA_XVX_CZ_DROPBEAR_RSA_HOST_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate-bracha.xvx.cz/dropbear_rsa_host_key" }
+GATE_BRACHA_XVX_CZ_DROPBEAR_ED25519_HOST_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate-bracha.xvx.cz/dropbear_ed25519_host_key" }
+GATE_BRACHA_XVX_CZ_MSMP_AUTH_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate-bracha.xvx.cz/msmtp_auth_password" }
+GATE_BRACHA_XVX_CZ_ROOT_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate-bracha.xvx.cz/root_password" }
+GATE_BRACHA_XVX_CZ_WIFI_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate-bracha.xvx.cz/wifi_password" }
+GATE_XVX_CZ_DROPBEAR_RSA_HOST_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate.xvx.cz/dropbear_rsa_host_key" }
+GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate.xvx.cz/dropbear_ed25519_host_key" }
+GATE_XVX_CZ_CLOUDFLARE_API_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate.xvx.cz/cloudflare_api_key" }
+GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate.xvx.cz/luci_homepage_openwrt_widget_password_hash" }
+GATE_XVX_CZ_MSMP_AUTH_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate.xvx.cz/msmtp_auth_password" }
+GATE_XVX_CZ_ROOT_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/ansible/gate.xvx.cz/root_password" }
+GATE_XVX_CZ_WIFI_PASSWORD = { provider = "ps", value = "/github/shared/actions-secrets/WIFI_PASSWORD" }
