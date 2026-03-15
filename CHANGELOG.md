@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.1.0...v2.2.0) (2026-03-15)
+
+
+### Features
+
+* migrate secrets from Ansible Vault to env var lookups via fnox ([#96](https://github.com/ruzickap/ansible-openwrt/issues/96)) ([b4e20c9](https://github.com/ruzickap/ansible-openwrt/commit/b4e20c94a8f32042e08a6f66a6563b0e983c423b))
+
 ## [2.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.0.0...v2.1.0) (2026-03-13)
 
 
