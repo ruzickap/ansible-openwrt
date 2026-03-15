@@ -92,7 +92,7 @@ Configured in `ansible/.ansible-lint.yml`:
 ## Markdown
 
 - Must pass `rumdl` checks (config in `.rumdl.toml`)
-- Wrap lines at 72 characters
+- Wrap lines at 80 characters
 - Use proper heading hierarchy (no skipped levels)
 - Include language identifiers in code fences
 - `CHANGELOG.md` is excluded from linting and link checking
@@ -161,6 +161,6 @@ Conventional branch format: `<type>/<description>`
 - [ ] Ansible modules use FQCN
 - [ ] Secrets are Vault-encrypted with `no_log: true`
 - [ ] Shell scripts pass `shellcheck` and `shfmt`
-- [ ] Markdown wraps at 72 characters and passes `rumdl`
+- [ ] Markdown wraps at 80 characters and passes `rumdl`
 - [ ] GitHub Actions pinned to SHA with `timeout-minutes`
 - [ ] Commit message follows conventional format
