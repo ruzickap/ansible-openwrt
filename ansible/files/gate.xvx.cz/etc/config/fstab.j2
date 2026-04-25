@@ -7,10 +7,10 @@ config 'global'
 	option	check_fs	'0'
 
 # mkfs.btrfs -L My_Disk_2_TB -f -R free-space-tree /dev/sda1
-config mount
-       option device '/dev/{{ usb_disk_device }}1'
-       option fstype 'btrfs'
-       option options 'noatime,nodiratime,compress=zstd,autodefrag,space_cache=v2'
-       option enabled '1'
-       option enabled_fsck '0'
-       option target '{{ usb_disk_mount_path }}'
+config 'mount'
+	option	target	'{{ usb_disk_mount_path }}'
+	option	enabled	'1'
+	option	device	'/dev/{{ usb_disk_device }}1'
+	option	fstype	'btrfs'
+	option	options	'noatime,nodiratime,compress=zstd,autodefrag,space_cache=v2'
+	option	enabled_fsck	'0'

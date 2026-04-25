@@ -22,7 +22,7 @@ config transmission
 	option dht_enabled true
 	option download_dir '{{ usb_disk_mount_path }}/torrents/torrents-completed'
 	option download_queue_enabled true
-	option download_queue_size 3
+	option download_queue_size 4
 	option encryption 1
 	option idle_seeding_limit 30
 	option idle_seeding_limit_enabled false
@@ -51,18 +51,18 @@ config transmission
 	option rpc_authentication_required false
 	option rpc_bind_address '0.0.0.0'
 	option rpc_enabled true
-	option rpc_host_whitelist '127.0.0.1'
+	option rpc_host_whitelist '127.0.0.1,192.168.1.*'
 	option rpc_host_whitelist_enabled false
 	option rpc_password ''
 	option rpc_port 9091
 	# http://192.168.1.1:9091/web/
 	option rpc_url '/'
 	option rpc_username ''
-	option rpc_whitelist '127.0.0.1'
+	option rpc_whitelist '127.0.0.1,192.168.1.*'
 	option rpc_whitelist_enabled false
 	option scrape_paused_torrents_enabled true
-	option script_torrent_done_enabled true
-	option script_torrent_done_filename '/etc/torrent-done.sh'
+	option script_torrent_done_enabled false
+	option script_torrent_done_filename ''
 	option seed_queue_enabled false
 	option seed_queue_size 10
 	option speed_limit_down {{ transmission_speed_limit_down }}

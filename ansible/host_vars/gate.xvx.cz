@@ -1,30 +1,16 @@
 # keep-sorted start newline_separated=yes
-adblock_lists:
-  # keep-sorted start
-  - adguard
-  - dshield
-  - hphosts
-  - malware
-  - malwarelist
-  - openphish
-  - reg_cz
-  - spam404
-  - sysctl
-  - whocares
-  # keep-sorted end
-
 cloudflare_api_key: "{{ lookup('env', 'GATE_XVX_CZ_CLOUDFLARE_API_KEY') }}"
 
 dhcp_hosts:
   # keep-sorted start
-  - ip: 192.168.1.2
+  - ip: "{{ network_prefix }}.2"
     name: raspberrypi-wifi
     mac: a0:f3:c1:1b:de:a6
     # mac: dc:a6:32:0e:bd:14
-  - ip: 192.168.1.3
+  - ip: "{{ network_prefix }}.3"
     name: uzg-01-nic
     mac: cc:db:a7:36:45:17
-  - ip: 192.168.1.4
+  - ip: "{{ network_prefix }}.4"
     name: msr-2-wifi
     mac: f0:f5:bd:f5:85:f4
   # keep-sorted end
@@ -33,11 +19,7 @@ dropbear_ed25519_host_key: "{{ lookup('env', 'GATE_XVX_CZ_DROPBEAR_ED25519_HOST_
 
 dropbear_rsa_host_key: "{{ lookup('env', 'GATE_XVX_CZ_DROPBEAR_RSA_HOST_KEY') }}"
 
-enable_boot_services:
-  - banip
-  - collectd
-
-guest_network_subnet: 172.16.254.0/24
+guest_network_ip_subnet: 172.16.254.1/24
 
 interfaces:
   # keep-sorted start
@@ -49,7 +31,7 @@ interfaces:
   - wan
   # keep-sorted end
 
-luci_homepage_openwrt_widget_password_hash: "{{ lookup('env', 'GATE_XVX_CZ_LUCI_HOMEPAGE_PASSWORD_HASH') }}"
+luci_homepage_openwrt_widget_password_hash: "{{ lookup('env', 'GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH') }}"
 
 luci_statistics_collectd_processes_processes: "cloudflared collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd wpa_supplicant"
 
@@ -66,7 +48,6 @@ openwrt_backup_directory: "{{ usb_disk_mount_path }}/backups/openwrt"
 
 openwrt_packages:
   # keep-sorted start
-  - adblock
   - bash
   - bind-dig
   - block-mount
@@ -86,7 +67,6 @@ openwrt_packages:
   - kmod-fs-btrfs
   - kmod-usb-storage-uas
   - less
-  - luci-app-adblock
   - luci-app-banip
   - luci-app-cloudflared
   - luci-app-hd-idle
@@ -100,19 +80,12 @@ openwrt_packages:
   - luci-ssl
   - mc
   - msmtp-mta
-  - opennds
   - openssh-sftp-server
-  - prometheus-node-exporter-lua
-  - prometheus-node-exporter-lua-nat_traffic
-  - prometheus-node-exporter-lua-netstat
-  - prometheus-node-exporter-lua-openwrt
-  - prometheus-node-exporter-lua-wifi
-  - prometheus-node-exporter-lua-wifi_stations
-  - python3-codecs
+  - prometheus-node-exporter-ucode
   - python3-decimal
+  - python3-idna
   - python3-light
   - python3-logging
-  - python3-urllib
   - rsync
   - telnet-bsd
   - transmission-web

@@ -1,22 +1,12 @@
 - name: Install Python
-  ansible.builtin.raw: test -e /usr/bin/python3 || ( opkg update && opkg install python3-codecs python3-light python3-logging python3-urllib python3-decimal )
+  ansible.builtin.raw: test -e /usr/bin/python3 || ( apk add python3-light python3-decimal python3-idna python3-logging )
   changed_when: false
 
-- name: Configure hostname
-  ansible.builtin.command: |
-    uci set system.@system[0].hostname={{ inventory_hostname_short }}
-  changed_when: false
-
-- name: Configure timezone
-  ansible.builtin.command: |
-    uci set system.@system[0].zonename={{ time_zone_name }}
-  changed_when: false
-
-- name: Configure persistent logging
-  ansible.builtin.shell: |
-    uci set system.@system[0].log_file=/var/log/system.log &&
-    uci set system.@system[0].log_size=512
-  changed_when: false
+- name: Configure system
+  ansible.builtin.template:
+    dest: /etc/config/system
+    src: files/{{ inventory_hostname }}/etc/config/system.j2
+    mode: u=rw,g=,o=
 
 - name: Create dropbear_*_host_key for dropbear
   shell: |
@@ -30,6 +20,8 @@
       content: "{{ dropbear_ed25519_host_key }}"
     - file: /etc/dropbear/dropbear_rsa_host_key
       content: "{{ dropbear_rsa_host_key }}"
+  changed_when: false
+  no_log: true
 
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
   ansible.builtin.template:
@@ -47,28 +39,25 @@
   ansible.builtin.copy:
     dest: /etc/config/firewall
     src: files/{{ inventory_hostname }}/etc/config/firewall
-    mode: u=rw,g=,o=
+    mode: u=rw,g=r,o=r
 
 - name: Configure WiFi
   ansible.builtin.template:
     dest: /etc/config/wireless
     src: files/{{ inventory_hostname }}/etc/config/wireless.j2
-    mode: u=rw,g=,o=
+    mode: u=rw,g=r,o=r
   no_log: true
 
 - name: Set root password
   ansible.builtin.replace:
     path: /etc/shadow
     regexp: "^root:([^:]*):"
-    replace: "root:{{ root_password | string | password_hash('md5') }}:" # DevSkim: ignore DS126858
+    replace: "root:{{ root_password | string | password_hash('sha256') }}:"
   changed_when: false
 
 - name: Install packages
-  community.general.opkg:
+  community.general.apk:
     name: "{{ openwrt_packages | join(',') }}"
-    update_cache: true
-  register: result
-  until: result is succeeded
 
 - name: Configure DHCP
   ansible.builtin.template:
@@ -116,23 +105,20 @@
 - name: Configure vnstat (/etc/config/vnstat)
   ansible.builtin.template:
     dest: /etc/config/vnstat
-    src: files/etc/config/vnstat.j2
+    src: files/{{ inventory_hostname }}/etc/config/vnstat.j2
     mode: u=rw,g=,o=
-
-- name: Configure watchcat
-  ansible.builtin.command: |
-    uci set watchcat.@watchcat[0].period=5m
-  changed_when: false
 
 - name: Luci statistics (/etc/config/luci_statistics)
   ansible.builtin.template:
     dest: /etc/config/luci_statistics
-    src: files/etc/config/luci_statistics.j2
+    src: files/{{ inventory_hostname }}/etc/config/luci_statistics.j2
     mode: u=rw,g=r,o=r
 
-- name: Use HTTPS for LuCI
-  ansible.builtin.command: uci set uhttpd.main.redirect_https=1
-  changed_when: false
+- name: Configure uhttpd (Use HTTPS for LuCI)
+  ansible.builtin.copy:
+    dest: /etc/config/uhttpd
+    src: files/{{ inventory_hostname }}/etc/config/uhttpd
+    mode: u=rw,g=,o=
 
 - name: Create directory for mc inside ~/.config
   ansible.builtin.file:
@@ -171,19 +157,11 @@
       [ -n "${BASH_VERSION}${KSH_VERSION}${ZSH_VERSION}" ] || return 0
       alias mc='/usr/bin/mc --nomouse'
 
-- name: Enable + Configure banIP
-  ansible.builtin.shell: |
-    uci set banip.global.ban_enabled=1 &&
-    uci set banip.global.ban_logcount=3 &&
-    uci set banip.global.ban_nftexpiry="1d"
-  changed_when: false
-
-- name: Enable services on boot
-  community.general.openwrt_init:
-    name: "{{ item }}"
-    state: started
-    enabled: true
-  loop: "{{ enable_boot_services }}"
+- name: Configure banip
+  ansible.builtin.copy:
+    dest: /etc/config/banip
+    src: files/{{ inventory_hostname }}/etc/config/banip
+    mode: u=rw,g=,o=
 
 ############################################
 # Configure msmtp + email notifications
@@ -201,73 +179,3 @@
     dest: /etc/rc.local
     src: files/etc/rc.local.j2
     mode: u=rwx,g=rx,o=rx
-
-############################################
-# USB disk
-############################################
-- name: Configure USB disk if defined
-  when: openwrt_backup_directory is defined and usb_disk_device is defined
-  block:
-    - name: Configure attached block device {{ usb_disk_device }}
-      ansible.builtin.template:
-        dest: /etc/config/fstab
-        src: files/{{ inventory_hostname }}/etc/config/fstab.j2
-        mode: u=rw,g=r,o=r
-
-    - name: Create directory {{ usb_disk_mount_path }}
-      ansible.builtin.file:
-        path: "{{ usb_disk_mount_path }}"
-        state: directory
-        mode: u=rwx,g=rx,o=rx
-
-    - name: Check the mounted disks
-      ansible.builtin.command: |
-        cat /proc/mounts
-      changed_when: false
-      register: mount_output
-
-    - name: Create file usb_disk_mount_path/USB_DISK_NOT_PRESENT if usb_disk_device_1 is not mounted
-      ansible.builtin.file:
-        path: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
-        state: touch
-        mode: u=rw,g=r,o=r
-      when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
-
-    - name: Mount USB disk
-      ansible.builtin.command: |
-        /sbin/block mount
-      register: block_mount
-      changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
-      when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
-  rescue:
-    - name: Print when errors
-      ansible.builtin.fail:
-        msg: Restore from backup failed
-
-############################################
-# Add backup script
-############################################
-- name: Create backup directory
-  ansible.builtin.file:
-    path: "{{ openwrt_backup_directory }}"
-    state: directory
-    mode: u=rwx,g=rx,o=rx
-
-- name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
-  ansible.builtin.template:
-    dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
-    src: files/etc/init.d/collectd_nlbwmon_vnstat-backup.j2
-    mode: u=rwx,g=rx,o=rx
-  notify: Enable collectd_nlbwmon_vnstat-backup on boot + restore data from backup
-
-- name: Configure to run collectd_nlbwmon_vnstat-backup daily
-  ansible.builtin.cron:
-    name: "Backup collectd nlbwmon vnstat databases"
-    minute: "0"
-    hour: "3"
-    job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
-
-- name: Restore data using collectd_nlbwmon_vnstat-backup
-  ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
-  args:
-    creates: /tmp/rrd/{{ inventory_hostname_short }}/cpu-0

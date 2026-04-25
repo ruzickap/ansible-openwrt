@@ -2,6 +2,8 @@
   hosts: all
   gather_facts: false
   force_handlers: true
+  vars:
+    network_prefix: "{{ network_ip_subnet.split('/')[0].split('.')[:3] | join('.') }}"
 
   tasks:
     - name: Include tasks
@@ -9,11 +11,6 @@
 
     - name: Include specific tasks
       ansible.builtin.include_tasks: tasks/tasks_{{ inventory_hostname }}.yml
-
-    - name: UCI commit
-      ansible.builtin.command: |
-        uci commit
-      changed_when: false
 
   handlers:
     - name: Import handlers

@@ -12,7 +12,7 @@ msmtp_from: petr.ruzicka@mylabs.dev
 
 msmtp_host: live.smtp.mailtrap.io
 
-network_subnet: 192.168.1.0/24
+network_ip_subnet: 192.168.1.1/24
 
 time_zone_name: Europe/Prague
 # keep-sorted end

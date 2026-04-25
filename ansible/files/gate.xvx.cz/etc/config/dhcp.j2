@@ -1,3 +1,4 @@
+
 config dnsmasq
 	option domainneeded '1'
 	option boguspriv '1'
@@ -19,8 +20,6 @@ config dnsmasq
 	option ednspacket_max '1232'
 	option filter_aaaa '0'
 	option filter_a '0'
-	# adblock support
-	option confdir '/tmp/dnsmasq.d'
 {% if dhcp_dns_servers is defined %}
 	list dhcp_option '6,{{ dhcp_dns_servers }}'
 {% endif %}
@@ -45,14 +44,15 @@ config dhcp 'guest'
 	option interface 'guest'
 	option start '2'
 	option limit '254'
-	option leasetime '24h'
+	option leasetime '8h'
 
 config odhcpd 'odhcpd'
 	option maindhcp '0'
-	option leasefile '/tmp/hosts/odhcpd'
+	option leasefile '/tmp/odhcpd.leases'
 	option leasetrigger '/usr/sbin/odhcpd-update'
 	option loglevel '4'
-	option piofolder '/tmp/odhcpd-piofolder'
+	option piodir '/tmp/odhcpd-piodir'
+	option hostsdir '/tmp/hosts'
 {% for dhcp_host in dhcp_hosts %}
 
 config host
