@@ -67,7 +67,7 @@ openwrt_packages:
   - rsync
   # keep-sorted end
 
-root_password: "{{ lookup('env', 'GATE_XVX_CZ_ROOT_PASSWORD') }}"
+root_password: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_ROOT_PASSWORD') }}"
 
 usb_disk_device: sda
 
@@ -75,7 +75,7 @@ usb_disk_fs_type: btrfs
 
 usb_disk_mount_path: /mnt
 
-wifi_password: "{{ lookup('env', 'GATE_XVX_CZ_WIFI_PASSWORD') }}"
+wifi_password: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_WIFI_PASSWORD') }}"
 
 wifi_ssid: kerova11
 
