@@ -147,4 +147,4 @@ config redirect
  	option dest      'lan'
  	option dest_port '32400'
  	option proto     'tcp'
- 	option dest_ip   '192.168.1.2'
+ 	option dest_ip   '{{ network_prefix }}.2'

@@ -19,25 +19,13 @@ config zone
 	list   network		'wan6'
 	option input		REJECT
 	option output		ACCEPT
-	option forward		REJECT
+	option forward		DROP
 	option masq		1
 	option mtu_fix		1
-
-config zone
-	option name 'guest'
-	option network 'guest'
-	option input 'REJECT'
-	option forward 'REJECT'
-	option output 'ACCEPT'
 
 config forwarding
 	option src		lan
 	option dest		wan
-
-# Allow Guest -> Internet
-config forwarding
-	option src 'guest'
-	option dest 'wan'
 
 # We need to accept udp packets on port 68,
 # see https://dev.openwrt.org/ticket/4108
@@ -200,28 +188,33 @@ config rule
 #	option dest_port	120
 #	option proto	tcp
 
-### My
+###########################
+# My
+###########################
+
+config zone
+	option name		guest
+	option network		'guest'
+	option input		REJECT
+	option forward		REJECT
+	option output		ACCEPT
+
+config forwarding 'guest_wan'
+	option src		guest
+	option dest		wan
 
 # Allow Guest -> Router
-config rule 'guest_dhcp'
-	option name 'Allow-DHCP-Guest'
-	option src 'guest'
-	option dest_port '67'
-	option proto 'udp'
-	option target 'ACCEPT'
-
 config rule 'guest_dns'
-	option name 'Allow-DNS-Guest'
-	option src 'guest'
-	option dest_port '53'
-	option proto 'tcp udp'
-	option target 'ACCEPT'
+	option name		Allow-DNS-Guest
+	option src		guest
+	option dest_port	53
+	option proto		'tcp udp'
+	option target		ACCEPT
 
-# port redirect of remapped ssh port (22222) on wan
-config redirect
-	option name       'Allow-SSH-22222'
-	option src        'wan'
-	option src_dport  '22222'
-	option dest       'lan'
-	option dest_port  '22'
-	option proto      'tcp'
+config rule 'guest_dhcp'
+	option name		Allow-DHCP-Guest
+	option src		guest
+	option dest_port	67
+	option proto		udp
+	option family		ipv4
+	option target		ACCEPT

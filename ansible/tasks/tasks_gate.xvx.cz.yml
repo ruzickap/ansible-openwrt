@@ -1,53 +1,103 @@
-- name: Enable hd-idle
-  ansible.builtin.command: |
-    uci set hd-idle.@hd-idle[-1].enabled=1
-  changed_when: false
+############################################
+# USB disk
+############################################
+- name: Configure USB disk if defined
+  when: openwrt_backup_directory is defined and usb_disk_device is defined
+  block:
+    - name: Configure attached block device {{ usb_disk_device }}
+      ansible.builtin.template:
+        dest: /etc/config/fstab
+        src: files/{{ inventory_hostname }}/etc/config/fstab.j2
+        mode: u=rw,g=r,o=r
 
-- name: Create "media" directories on the disk
+    - name: Create directory {{ usb_disk_mount_path }}
+      ansible.builtin.file:
+        path: "{{ usb_disk_mount_path }}"
+        state: directory
+        mode: u=rwx,g=rx,o=rx
+
+    - name: Check the mounted disks
+      ansible.builtin.command: |
+        cat /proc/mounts
+      changed_when: false
+      register: mount_output
+
+    - name: Create file usb_disk_mount_path/USB_DISK_NOT_PRESENT if usb_disk_device_1 is not mounted
+      ansible.builtin.file:
+        path: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
+        state: touch
+        mode: u=rw,g=r,o=r
+      when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+    - name: Create "media" directories on the disk
+      ansible.builtin.file:
+        path: "{{ usb_disk_mount_path }}/{{ item.name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
+      loop:
+        - name: media
+          mode: u=rx,g=rx,o=rx
+        - name: media/movies
+        - name: media/music
+
+    - name: Mount USB disk
+      ansible.builtin.command: |
+        /sbin/block mount
+      register: block_mount
+      changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
+      when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+    - name: Configure hd-idle
+      ansible.builtin.copy:
+        dest: /etc/config/hd-idle
+        src: files/{{ inventory_hostname }}/etc/config/hd-idle
+        mode: u=rw,g=,o=
+  rescue:
+    - name: Print when errors
+      ansible.builtin.fail:
+        msg: Restore from backup failed
+
+############################################
+# Add backup script
+############################################
+- name: Create backup directory
   ansible.builtin.file:
-    path: "{{ usb_disk_mount_path }}/{{ item.name }}"
+    path: "{{ openwrt_backup_directory }}"
     state: directory
-    owner: root
-    group: root
-    mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
-  loop:
-    - name: media
-      mode: u=rx,g=rx,o=rx
-    - name: media/movies
-    - name: media/music
+    mode: u=rwx,g=rx,o=rx
 
-- name: Allow access to media using http (uhttpd)
-  ansible.builtin.file:
-    src: "{{ usb_disk_mount_path }}/media"
-    dest: /www/media
-    state: link
+- name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
+  ansible.builtin.template:
+    dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
+    src: files/etc/init.d/collectd_nlbwmon_vnstat-backup.j2
+    mode: u=rwx,g=rx,o=rx
+  notify: Enable collectd_nlbwmon_vnstat-backup on boot + restore data from backup
 
-- name: Enable prometheus to liston on lan
-  ansible.builtin.command: |
-    uci set prometheus-node-exporter-lua.@prometheus-node-exporter-lua[0].listen_interface=lan
-  changed_when: false
+- name: Configure to run collectd_nlbwmon_vnstat-backup daily
+  ansible.builtin.cron:
+    name: "Backup collectd nlbwmon vnstat databases"
+    minute: "0"
+    hour: "3"
+    job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
+
+- name: Restore data using collectd_nlbwmon_vnstat-backup
+  ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
+  args:
+    creates: /tmp/rrd/{{ inventory_hostname_short }}/cpu-0
+
+- name: Configure prometheus-node-exporter-ucode
+  ansible.builtin.copy:
+    dest: /etc/config/prometheus-node-exporter-ucode
+    src: files/{{ inventory_hostname }}/etc/config/prometheus-node-exporter-ucode
+    mode: u=rw,g=,o=
 
 - name: Configure cloudflared
-  ansible.builtin.shell: |
-    uci set cloudflared.@cloudflared[0].enabled=1
-    uci set cloudflared.@cloudflared[0].token={{ cloudflare_api_key }}
-    uci set cloudflared.@cloudflared[0].tag=fqdn={{ inventory_hostname }}
-  changed_when: false
-
-- name: Enable adblock lists
-  ansible.builtin.shell:
-    cmd: set -o pipefail && uci show adblock.global.adb_sources | grep -q "{{ item }}" || uci add_list adblock.global.adb_sources={{ item }}
-    executable: /bin/bash
-  loop: "{{ adblock_lists }}"
-  changed_when: false
-
-- name: Cronjob for adblock regular block list update
-  ansible.builtin.cron:
-    name: "Adblock regular block list update"
-    weekday: "1"
-    minute: "0"
-    hour: "4"
-    job: "/etc/init.d/adblock reload"
+  ansible.builtin.template:
+    dest: /etc/config/cloudflared
+    src: files/{{ inventory_hostname }}/etc/config/cloudflared.j2
+    mode: u=rw,g=,o=
 
 ############################################
 # Transmission
@@ -58,12 +108,6 @@
     dest: /etc/config/transmission
     src: files/{{ inventory_hostname }}/etc/config/transmission.j2
     mode: u=rw,g=r,o=r
-
-- name: Install transmission torrent done smtp notification script
-  ansible.builtin.template:
-    dest: /etc/torrent-done.sh
-    src: files/{{ inventory_hostname }}/etc/torrent-done.sh.j2
-    mode: u=rwx,g=rx,o=rx
 
 - name: Start transmission
   community.general.openwrt_init:
@@ -85,10 +129,6 @@
     group: transmission
     mode: u=rw,g=r,o=r
 
-############################################
-# Homepage
-############################################
-
 - name: Create Luci ACL for Homepage OpenWRT widget
   ansible.builtin.copy:
     dest: /usr/share/rpcd/acl.d/homepage.json
@@ -102,28 +142,8 @@
     mode: u=rw,g=r,o=r
   no_log: true
 
-############################################
-# Samba
-############################################
-
-- name: Configure Samba share for media
-  ansible.builtin.shell: |
-    uci show samba4 | grep -q sambashare || uci add samba4 sambashare && \
-    uci set samba4.@sambashare[-1].guest_only=yes && \
-    uci set samba4.@sambashare[-1].force_root=1 && \
-    uci set samba4.@sambashare[-1].name=media && \
-    uci set samba4.@sambashare[-1].inherit_owner=yes && \
-    uci set samba4.@sambashare[-1].guest_ok=yes && \
-    uci set samba4.@sambashare[-1].read_only=yes && \
-    uci set samba4.@sambashare[-1].path={{ usb_disk_mount_path }}/media
-  changed_when: false
-
-############################################
-# openNDS
-############################################
-
-- name: Configure openNDS
+- name: Configure samba4
   ansible.builtin.template:
-    dest: /etc/config/opennds
-    src: files/{{ inventory_hostname }}/etc/config/opennds.j2
-    mode: u=rw,g=r,o=r
+    dest: /etc/config/samba4
+    src: files/{{ inventory_hostname }}/etc/config/samba4.j2
+    mode: u=rw,g=,o=
