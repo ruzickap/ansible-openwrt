@@ -5,28 +5,22 @@
 Ansible playbooks for configuring OpenWrt devices (Wi-Fi routers).
 Repository: `ruzickap/ansible-openwrt`. License: Apache 2.0.
 
-Target hosts: `gate.xvx.cz` (ASUS RT-AX53U) and
-`gate-bracha.xvx.cz` (ZyXEL NBG6617), defined in
-`ansible/inventory/hosts`.
+Target hosts defined in `ansible/inventory/hosts`:
+
+- `gate.xvx.cz` (ASUS RT-AX53U) -- currently active
+- `gate-bracha.xvx.cz` (ZyXEL NBG6617) -- currently commented out
 
 ## Build / Run / Lint Commands
 
 ```bash
-# Run the full playbook (requires vault password file)
+# Run the full playbook
 cd ansible && ansible-playbook --diff main.yml -i inventory/hosts
 
-# Or use the wrapper script
-./run_openwrt.sh
-
 # Install Ansible Galaxy dependencies
-ansible-galaxy collection install -r ansible/requirements.yml
+ansible-galaxy install -r ansible/requirements.yml
 
 # Lint Ansible playbooks
 ansible-lint ansible/
-
-# Lint shell scripts
-shellcheck run_openwrt.sh
-shfmt --case-indent --indent 2 --space-redirects -d run_openwrt.sh
 
 # Lint Markdown
 rumdl ./*.md
@@ -53,14 +47,19 @@ linting. Validate changes locally with the tools listed above.
 - **Indentation**: 2 spaces, no tabs, throughout all YAML files
 - **Variables**: `lowercase_with_underscores` for Ansible variables
   (e.g., `wifi_password`, `usb_disk_mount_path`)
-- **Secrets**: Encrypt with Ansible Vault (`!vault`); use `no_log: true`
-  on tasks that handle sensitive data
+- **Secrets**: Stored via environment variable lookups
+  (`lookup('env', 'VAR_NAME')`); use `no_log: true` on tasks that
+  handle sensitive data
 - **Idempotency**: Use `changed_when: false` on commands that do not
   alter state (queries, reads)
 - **Templates**: Jinja2 files use `.j2` extension; placed under
   `ansible/files/`
+- **Shared files**: Common templates under `ansible/files/etc/`
+  (e.g., `authorized_keys.j2`, `msmtprc.j2`, `rc.local.j2`)
 - **Host-specific files**: Organized under
-  `ansible/files/<hostname>/etc/...`
+  `ansible/files/<hostname>/etc/...` (and other paths like `usr/`)
+- **Common tasks**: `ansible/tasks/common.yml`, imported by
+  `main.yml` for all hosts
 - **Host-specific tasks**: `ansible/tasks/tasks_<hostname>.yml`,
   loaded dynamically via `include_tasks`
 - **Host-specific variables**: `ansible/host_vars/<hostname>`
@@ -123,7 +122,7 @@ Configured in `ansible/.ansible-lint.yml`:
 - **DevSkim**: Ignores DS162092, DS137138; excludes `CHANGELOG.md`
 - **KICS**: Fails only on HIGH severity (`--fail-on high`)
 - **Trivy**: HIGH and CRITICAL only, ignores unfixed vulnerabilities
-- Never commit plaintext secrets; use Ansible Vault encryption
+- Never commit plaintext secrets; use environment variable lookups
 
 ## Version Control
 
@@ -159,7 +158,7 @@ Conventional branch format: `<type>/<description>`
 
 - [ ] All YAML uses 2-space indentation
 - [ ] Ansible modules use FQCN
-- [ ] Secrets are Vault-encrypted with `no_log: true`
+- [ ] Secrets use env var lookups with `no_log: true`
 - [ ] Shell scripts pass `shellcheck` and `shfmt`
 - [ ] Markdown wraps at 80 characters and passes `rumdl`
 - [ ] GitHub Actions pinned to SHA with `timeout-minutes`
