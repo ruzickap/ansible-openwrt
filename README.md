@@ -13,7 +13,7 @@ Build custom firmware using the OpenWrt Sysupgrade API:
 
 ```bash
 PACKAGES_JSON=$(yq -o=json '.openwrt_packages' ansible/host_vars/gate.xvx.cz)
-LATEST_STABLE=$(curl -s --compressed https://sysupgrade.openwrt.org/api/v1/latest | jq -r '.latest[] | select(test("-rc[0-9]+$") | not) | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' | sort -V | tail -n 1)
+LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/latest | jq -r '.latest[] | select(test("-rc[0-9]+$") | not) | select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$"))' | sort -V | tail -n 1)
 echo "Latest stable: ${LATEST_STABLE}"
 
 BUILD_RESPONSE=$(curl -s --compressed -X POST https://sysupgrade.openwrt.org/api/v1/build \
