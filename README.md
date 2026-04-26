@@ -40,6 +40,7 @@ done
 BIN_DIR=$(jq -r '.bin_dir' /tmp/build_status.json)
 IMAGE_NAME=$(jq -r '.images[] | select(.type == "sysupgrade") | .name' /tmp/build_status.json)
 IMAGE_URL="https://sysupgrade.openwrt.org/store/${BIN_DIR}/${IMAGE_NAME}"
+echo "🔍 Build status JSON: https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}"
 echo "👉 sysupgrade -v -n -p ${IMAGE_URL}"
 ```
 
