@@ -1,5 +1,22 @@
 # Changelog
 
+## [3.0.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.1.0...v3.0.0) (2026-04-26)
+
+
+### ⚠ BREAKING CHANGES
+
+* overhaul OpenWrt config with new services and reorganized files ([#99](https://github.com/ruzickap/ansible-openwrt/issues/99))
+
+### Features
+
+* migrate secrets from Ansible Vault to env var lookups via fnox ([#96](https://github.com/ruzickap/ansible-openwrt/issues/96)) ([b4e20c9](https://github.com/ruzickap/ansible-openwrt/commit/b4e20c94a8f32042e08a6f66a6563b0e983c423b))
+* overhaul OpenWrt config with new services and reorganized files ([#99](https://github.com/ruzickap/ansible-openwrt/issues/99)) ([1cd2b58](https://github.com/ruzickap/ansible-openwrt/commit/1cd2b582df9cb6e6716c0dc44c47b75603900569))
+
+
+### Bug Fixes
+
+* correct secret paths and env variable names ([#103](https://github.com/ruzickap/ansible-openwrt/issues/103)) ([c0b77f7](https://github.com/ruzickap/ansible-openwrt/commit/c0b77f72da1ac6855bd10ceb4470d0b6c38dfccc))
+
 ## [2.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.0.0...v2.1.0) (2026-03-13)
 
 
