@@ -6,6 +6,15 @@
     network_prefix: "{{ network_ip_subnet.split('/')[0].split('.')[:3] | join('.') }}"
 
   tasks:
+    - name: Install Python
+      ansible.builtin.raw: test -e /usr/bin/python3 || ( apk add python3-light python3-decimal python3-idna python3-logging )
+      changed_when: false
+
+    - name: Create initial backup of /etc (first run only, skipped if /root/etc-backup.tar.gz exists)
+      ansible.builtin.command:
+        cmd: tar -czf /root/etc-backup.tar.gz -C / etc
+        creates: /root/etc-backup.tar.gz
+
     - name: Include tasks
       ansible.builtin.import_tasks: tasks/common.yml
 

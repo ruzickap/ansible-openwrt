@@ -1,7 +1,3 @@
-- name: Install Python
-  ansible.builtin.raw: test -e /usr/bin/python3 || ( apk add python3-light python3-decimal python3-idna python3-logging )
-  changed_when: false
-
 - name: Configure system
   ansible.builtin.template:
     dest: /etc/config/system

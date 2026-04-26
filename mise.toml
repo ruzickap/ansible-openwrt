@@ -11,4 +11,12 @@ _.fnox-env = { tools = true }
 [tasks.run]
 description = "Run Ansible playbook"
 dir = "ansible"
-run = "ansible-playbook --diff main.yml -i inventory/hosts"
+shell = "bash -c"
+run = """
+set -euxo pipefail
+if [ ! -f /tmp/ansible-openwrt.log ]; then
+  ansible-playbook --diff main.yml -i inventory/hosts 2>&1 | tee /tmp/ansible-openwrt.log
+else
+  ansible-playbook --diff main.yml -i inventory/hosts
+fi
+"""
