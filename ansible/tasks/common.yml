@@ -4,20 +4,20 @@
     src: files/{{ inventory_hostname }}/etc/config/system.j2
     mode: u=rw,g=,o=
 
-- name: Create dropbear_*_host_key for dropbear
+- name: Create dropbear_ed25519_host_key for dropbear
   shell: |
     python3 - <<'PY'
     import base64, pathlib
-    data = base64.b64decode("{{ item.content }}")
-    pathlib.Path("{{ item.file }}").write_bytes(data)
+    data = base64.b64decode("{{ dropbear_ed25519_host_key }}")
+    pathlib.Path("/etc/dropbear/dropbear_ed25519_host_key").write_bytes(data)
     PY
-  loop:
-    - file: /etc/dropbear/dropbear_ed25519_host_key
-      content: "{{ dropbear_ed25519_host_key }}"
-    - file: /etc/dropbear/dropbear_rsa_host_key
-      content: "{{ dropbear_rsa_host_key }}"
   changed_when: false
   no_log: true
+
+- name: Remove dropbear RSA host key
+  ansible.builtin.file:
+    path: /etc/dropbear/dropbear_rsa_host_key
+    state: absent
 
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
   ansible.builtin.template:
