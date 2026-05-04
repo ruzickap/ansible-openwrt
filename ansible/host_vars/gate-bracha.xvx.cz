@@ -6,8 +6,6 @@ dhcp_hosts:
 
 dropbear_ed25519_host_key: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_DROPBEAR_ED25519_HOST_KEY') }}"
 
-dropbear_rsa_host_key: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_DROPBEAR_RSA_HOST_KEY') }}"
-
 enable_boot_services:
   - banip
   - collectd

@@ -5,7 +5,7 @@ Ansible playbooks configuring OpenWrt devices (Wi-Fi routers)
 > 💡 Always [build](https://firmware-selector.openwrt.org/) your own OpenWrt
 > Firmware with installed packages (it will save disk space)
 
-## [ASUS RT-AX53U](https://openwrt.org/toh/asus/rt-ax53u)
+## [ASUS RT-AX53U](https://openwrt.org/toh/asus/rt-ax53u) - gate.xvx.cz
 
 * [Firmware](https://firmware-selector.openwrt.org/?version=24.10.0&target=ramips%2Fmt7621&id=asus_rt-ax53u)
 
@@ -18,12 +18,7 @@ echo "Latest stable: ${LATEST_STABLE}"
 
 BUILD_RESPONSE=$(curl -s --compressed -X POST https://sysupgrade.openwrt.org/api/v1/build \
   -H "Content-Type: application/json" \
-  -d "$(jq -n \
-    --arg target "ramips/mt7621" \
-    --arg profile "asus_rt-ax53u" \
-    --arg version "${LATEST_STABLE}" \
-    --argjson packages "${PACKAGES_JSON}" \
-    '{target: $target, profile: $profile, version: $version, packages: $packages, diff_packages: false}')")
+  -d "$(jq -n --arg target "ramips/mt7621" --arg profile "asus_rt-ax53u" --arg version "${LATEST_STABLE}" --argjson packages "${PACKAGES_JSON}" '{target: $target, profile: $profile, version: $version, packages: $packages, diff_packages: false}')")
 
 REQUEST_HASH=$(jq -r '.request_hash' <<< "${BUILD_RESPONSE}")
 echo "Request hash: ${REQUEST_HASH}"
@@ -55,29 +50,29 @@ echo "👉 sysupgrade -v -n -p ${IMAGE_URL}"
 ### Flash router and allow SSH access to the router form the WAN
 
 ```bash
-# Flash OpenWrt firmware
-sysupgrade -p -n -v https://sysupgrade.openwrt.org/store/834d5261fadfab7d4f781ca4aefc8c9d8a9492bfd832365b4f1bcb0bea0de956/openwrt-24.10.0-0a8242515cd3-ipq40xx-generic-zyxel_nbg6617-squashfs-sysupgrade.bin
-
 # Set root password
 passwd
 
 # Enable SSH access from the WAN
 wget https://github.com/ruzickap.keys -O /etc/dropbear/authorized_keys
 
-uci add firewall rule
-uci set firewall.@rule[-1].name=Allow-SSH
-uci set firewall.@rule[-1].src=wan
-uci set firewall.@rule[-1].target=ACCEPT
-uci set firewall.@rule[-1].proto=tcp
-uci set firewall.@rule[-1].dest_port=22
+cat >> /etc/config/firewall << 'EOF'
 
-uci add firewall redirect
-uci set firewall.@redirect[-1].name=Allow-SSH-22222
-uci set firewall.@redirect[-1].src=wan
-uci set firewall.@redirect[-1].proto=tcp
-uci set firewall.@redirect[-1].src_dport=22222
-uci set firewall.@redirect[-1].dest=lan
-uci set firewall.@redirect[-1].dest_port=22
-uci commit
+config rule
+	option name 'Allow-SSH'
+	option src 'wan'
+	option target 'ACCEPT'
+	option proto 'tcp'
+	option dest_port '22'
+
+config redirect
+	option name 'Allow-SSH-22222'
+	option src 'wan'
+	option proto 'tcp'
+	option src_dport '22222'
+	option dest 'lan'
+	option dest_port '22'
+EOF
+
 /etc/init.d/firewall restart
 ```
