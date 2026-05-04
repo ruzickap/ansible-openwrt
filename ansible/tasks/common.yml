@@ -14,11 +14,6 @@
   changed_when: false
   no_log: true
 
-- name: Remove dropbear RSA host key
-  ansible.builtin.file:
-    path: /etc/dropbear/dropbear_rsa_host_key
-    state: absent
-
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
   ansible.builtin.template:
     dest: /etc/dropbear/authorized_keys
