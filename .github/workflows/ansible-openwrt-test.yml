@@ -1,0 +1,197 @@
+---
+# GitHub Actions workflow for testing Ansible playbooks against OpenWrt
+# containers. Each job spins up an OpenWrt x86-64 rootfs Docker container
+# with SSH access and runs the playbook against it.
+name: ansible-openwrt-test
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ansible/**
+
+permissions: read-all
+
+defaults:
+  run:
+    shell: bash -euxo pipefail {0}
+
+env:
+  # renovate: datasource=docker depName=openwrt/rootfs
+  OPENWRT_VERSION: "x86_64-25.12.2"
+
+jobs:
+  gate-xvx-cz:
+    name: "gate.xvx.cz (ASUS RT-AX53U)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Start OpenWrt container with SSH
+        run: |
+          docker run -d --name openwrt \
+            --hostname gate \
+            -p 2222:22 \
+            "openwrt/rootfs:${OPENWRT_VERSION}"
+
+          # Wait for container to be ready
+          sleep 3
+
+          # Install dropbear (SSH) and Python inside the container
+          docker exec openwrt sh -c '
+            mkdir -p /var/lock /var/run
+            apk update
+            apk add dropbear python3-light python3-decimal python3-idna python3-logging
+            dropbear -R -p 22
+          '
+
+          # Configure SSH key-based authentication
+          ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" -q
+          docker exec openwrt sh -c "mkdir -p /etc/dropbear"
+          docker cp ~/.ssh/id_ed25519.pub openwrt:/tmp/authorized_key
+          docker exec openwrt sh -c '
+            cat /tmp/authorized_key >> /etc/dropbear/authorized_keys
+            chmod 600 /etc/dropbear/authorized_keys
+          '
+
+          # Verify SSH connectivity
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -p 2222 root@127.0.0.1 "echo 'SSH connection successful'"
+
+      - name: Install Ansible and dependencies
+        run: |
+          pip3 install ansible
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Create test inventory
+        run: |
+          cat > ansible/inventory/test-hosts <<'EOF'
+          [openwrt]
+          gate.xvx.cz ansible_host=127.0.0.1 ansible_port=2222
+
+          [openwrt:vars]
+          ansible_user=root
+          ansible_remote_tmp=/tmp/ansible
+          ansible_ssh_common_args=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+          EOF
+
+      - name: Run Ansible playbook (check mode)
+        env:
+          # Provide dummy secrets for CI testing
+          GATE_XVX_CZ_CLOUDFLARE_API_KEY: ci-test-dummy-value
+          GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY: AAAAC3NzaC1lZDI1NTE5AAAAIBFakeKeyForCITestingOnlyNotReal00000000000=
+          GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH: ci-test-dummy-value
+          GATE_XVX_CZ_MSMP_AUTH_PASSWORD: ci-test-dummy-value
+          GATE_XVX_CZ_ROOT_PASSWORD: ci-test-dummy-value
+          GATE_XVX_CZ_WIFI_PASSWORD: ci-test-dummy-value
+        working-directory: ansible
+        run: |
+          ansible-playbook --diff --check main.yml \
+            -i inventory/test-hosts \
+            --limit gate.xvx.cz
+
+      - name: Run Ansible playbook
+        env:
+          GATE_XVX_CZ_CLOUDFLARE_API_KEY: ci-test-dummy-value
+          GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY: AAAAC3NzaC1lZDI1NTE5AAAAIBFakeKeyForCITestingOnlyNotReal00000000000=
+          GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH: ci-test-dummy-value
+          GATE_XVX_CZ_MSMP_AUTH_PASSWORD: ci-test-dummy-value
+          GATE_XVX_CZ_ROOT_PASSWORD: ci-test-dummy-value
+          GATE_XVX_CZ_WIFI_PASSWORD: ci-test-dummy-value
+        working-directory: ansible
+        run: |
+          ansible-playbook --diff main.yml \
+            -i inventory/test-hosts \
+            --limit gate.xvx.cz
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f openwrt || true
+
+  gate-bracha-xvx-cz:
+    name: "gate-bracha.xvx.cz (ZyXEL NBG6617)"
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: Start OpenWrt container with SSH
+        run: |
+          docker run -d --name openwrt \
+            --hostname gate-bracha \
+            -p 2222:22 \
+            "openwrt/rootfs:${OPENWRT_VERSION}"
+
+          # Wait for container to be ready
+          sleep 3
+
+          # Install dropbear (SSH) and Python inside the container
+          docker exec openwrt sh -c '
+            mkdir -p /var/lock /var/run
+            apk update
+            apk add dropbear python3-light python3-decimal python3-idna python3-logging
+            dropbear -R -p 22
+          '
+
+          # Configure SSH key-based authentication
+          ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N "" -q
+          docker exec openwrt sh -c "mkdir -p /etc/dropbear"
+          docker cp ~/.ssh/id_ed25519.pub openwrt:/tmp/authorized_key
+          docker exec openwrt sh -c '
+            cat /tmp/authorized_key >> /etc/dropbear/authorized_keys
+            chmod 600 /etc/dropbear/authorized_keys
+          '
+
+          # Verify SSH connectivity
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -p 2222 root@127.0.0.1 "echo 'SSH connection successful'"
+
+      - name: Install Ansible and dependencies
+        run: |
+          pip3 install ansible
+          ansible-galaxy collection install -r ansible/requirements.yml
+
+      - name: Create test inventory
+        run: |
+          cat > ansible/inventory/test-hosts <<'EOF'
+          [openwrt]
+          gate-bracha.xvx.cz ansible_host=127.0.0.1 ansible_port=2222
+
+          [openwrt:vars]
+          ansible_user=root
+          ansible_remote_tmp=/tmp/ansible
+          ansible_ssh_common_args=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
+          EOF
+
+      - name: Run Ansible playbook (check mode)
+        env:
+          GATE_BRACHA_XVX_CZ_DROPBEAR_ED25519_HOST_KEY: AAAAC3NzaC1lZDI1NTE5AAAAIBFakeKeyForCITestingOnlyNotReal00000000000=
+          GATE_BRACHA_XVX_CZ_MSMP_AUTH_PASSWORD: ci-test-dummy-value
+          GATE_BRACHA_XVX_CZ_ROOT_PASSWORD: ci-test-dummy-value
+          GATE_BRACHA_XVX_CZ_WIFI_PASSWORD: ci-test-dummy-value
+        working-directory: ansible
+        run: |
+          ansible-playbook --diff --check main.yml \
+            -i inventory/test-hosts \
+            --limit gate-bracha.xvx.cz
+
+      - name: Run Ansible playbook
+        env:
+          GATE_BRACHA_XVX_CZ_DROPBEAR_ED25519_HOST_KEY: AAAAC3NzaC1lZDI1NTE5AAAAIBFakeKeyForCITestingOnlyNotReal00000000000=
+          GATE_BRACHA_XVX_CZ_MSMP_AUTH_PASSWORD: ci-test-dummy-value
+          GATE_BRACHA_XVX_CZ_ROOT_PASSWORD: ci-test-dummy-value
+          GATE_BRACHA_XVX_CZ_WIFI_PASSWORD: ci-test-dummy-value
+        working-directory: ansible
+        run: |
+          ansible-playbook --diff main.yml \
+            -i inventory/test-hosts \
+            --limit gate-bracha.xvx.cz
+
+      - name: Cleanup
+        if: always()
+        run: docker rm -f openwrt || true
