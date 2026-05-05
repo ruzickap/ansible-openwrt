@@ -36,10 +36,12 @@ jobs:
           docker run -d --name openwrt \
             --hostname gate \
             -p 2222:22 \
-            "openwrt/rootfs:${OPENWRT_VERSION}"
+            --entrypoint /bin/sh \
+            "openwrt/rootfs:${OPENWRT_VERSION}" \
+            -c "sleep infinity"
 
           # Wait for container to be ready
-          sleep 3
+          sleep 2
 
           # Install dropbear (SSH) and Python inside the container
           docker exec openwrt sh -c '
@@ -125,10 +127,12 @@ jobs:
           docker run -d --name openwrt \
             --hostname gate-bracha \
             -p 2222:22 \
-            "openwrt/rootfs:${OPENWRT_VERSION}"
+            --entrypoint /bin/sh \
+            "openwrt/rootfs:${OPENWRT_VERSION}" \
+            -c "sleep infinity"
 
           # Wait for container to be ready
-          sleep 3
+          sleep 2
 
           # Install dropbear (SSH) and Python inside the container
           docker exec openwrt sh -c '
