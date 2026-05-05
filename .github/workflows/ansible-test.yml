@@ -2,7 +2,7 @@
 # GitHub Actions workflow for testing Ansible playbooks against OpenWrt
 # containers. Each job spins up an OpenWrt x86-64 rootfs Docker container
 # with SSH access and runs the playbook against it.
-name: ansible-test
+name: ansible-openwrt-test
 
 on:
   workflow_dispatch:
