@@ -81,21 +81,6 @@ jobs:
           ansible_ssh_common_args=-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null
           EOF
 
-      - name: Run Ansible playbook (check mode)
-        env:
-          # Provide dummy secrets for CI testing
-          GATE_XVX_CZ_CLOUDFLARE_API_KEY: ci-test-dummy-value
-          GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY: AAAAC3NzaC1lZDI1NTE5AAAAIBFakeKeyForCITestingOnlyNotReal00000000000=
-          GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH: ci-test-dummy-value
-          GATE_XVX_CZ_MSMP_AUTH_PASSWORD: ci-test-dummy-value
-          GATE_XVX_CZ_ROOT_PASSWORD: ci-test-dummy-value
-          GATE_XVX_CZ_WIFI_PASSWORD: ci-test-dummy-value
-        working-directory: ansible
-        run: |
-          ansible-playbook --diff --check main.yml \
-            -i inventory/test-hosts \
-            --limit gate.xvx.cz
-
       - name: Run Ansible playbook
         env:
           GATE_XVX_CZ_CLOUDFLARE_API_KEY: ci-test-dummy-value
