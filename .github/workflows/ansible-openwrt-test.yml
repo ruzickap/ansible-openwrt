@@ -66,7 +66,7 @@ jobs:
 
       - name: Install Ansible and dependencies
         run: |
-          pip3 install ansible
+          pip3 install ansible passlib
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Create test inventory
@@ -157,7 +157,7 @@ jobs:
 
       - name: Install Ansible and dependencies
         run: |
-          pip3 install ansible
+          pip3 install ansible passlib
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Create test inventory
