@@ -13,8 +13,7 @@ WIFI_SSID=$(yq '.wifi_ssid' "${HOST_VARS}")
 WIFI_PASSWORD_VAR=$(echo "${HOSTNAME}" | tr '[:lower:].-' '[:upper:]__')_WIFI_PASSWORD
 WIFI_PASSWORD="${!WIFI_PASSWORD_VAR:?Environment variable ${WIFI_PASSWORD_VAR} is not set}"
 
-DEFAULTS="uci delete wireless.radio0.disabled
-uci delete wireless.radio1.disabled
+DEFAULTS="uci delete wireless.default_radio1.disabled
 uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
 uci set wireless.default_radio1.encryption='sae-mixed'
 uci set wireless.default_radio1.key='${WIFI_PASSWORD}'
@@ -42,7 +41,6 @@ if [[ "${REQUEST_HASH}" == "null" ]]; then
   jq . <<< "${BUILD_RESPONSE}"
   exit 1
 fi
-echo "🔑 Request hash: ${REQUEST_HASH}"
 
 while true; do
   HTTP_CODE=$(curl -s --compressed -o /tmp/build_status.json -w '%{http_code}' \
@@ -62,5 +60,5 @@ done
 BIN_DIR=$(jq -r '.bin_dir' /tmp/build_status.json)
 IMAGE_NAME=$(jq -r '.images[] | select(.type == "sysupgrade") | .name' /tmp/build_status.json)
 IMAGE_URL="https://sysupgrade.openwrt.org/store/${BIN_DIR}/${IMAGE_NAME}"
-echo "📋 Build status JSON: https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}"
+echo "Build status JSON: https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}"
 echo "🚀 sysupgrade -v -n -p ${IMAGE_URL}"
