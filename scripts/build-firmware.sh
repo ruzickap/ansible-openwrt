@@ -72,7 +72,7 @@ fi
 while true; do
   HTTP_CODE=$(curl -s --compressed -o /tmp/build_status.json -w '%{http_code}' \
     "https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}")
-  echo "⏳ Build status: ${HTTP_CODE}"
+  echo "⏳ Build status: ${HTTP_CODE} - waiting for build to complete..."
   if [[ "${HTTP_CODE}" == "200" ]]; then
     break
   elif [[ "${HTTP_CODE}" == "202" ]]; then
