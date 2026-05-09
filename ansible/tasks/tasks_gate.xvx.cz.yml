@@ -18,6 +18,7 @@
     src: files/{{ inventory_hostname }}/etc/config/cloudflared.j2
     mode: u=rw,g=,o=
     backup: true
+  no_log: true
 
 ############################################
 # Transmission
@@ -39,8 +40,6 @@
   ansible.builtin.command: wget "{{ transmission_blocklist_url }}" -O "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
   args:
     creates: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
-  tags:
-    - skip_ansible_lint
 
 - name: Set proper permissions for block list
   ansible.builtin.file:
