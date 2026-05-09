@@ -24,10 +24,10 @@ config samba
 	#option samba_nice '-10'
 
 config sambashare
-  option guest_only 'yes'
-  option force_root '1'
-  option name 'media'
-  option inherit_owner 'yes'
-  option guest_ok 'yes'
-  option read_only 'yes'
-  option path '{{ usb_disk_mount_path }}/media'
+	option guest_only 'yes'
+	option force_root '1'
+	option name 'media'
+	option inherit_owner 'yes'
+	option guest_ok 'yes'
+	option read_only 'yes'
+	option path '{{ usb_disk_mount_path }}/media'

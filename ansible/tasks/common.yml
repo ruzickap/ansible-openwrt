@@ -6,7 +6,7 @@
     backup: true
 
 - name: Create dropbear_ed25519_host_key for dropbear
-  shell: |
+  ansible.builtin.shell: |
     python3 - <<'PY'
     import base64, pathlib
     data = base64.b64decode("{{ dropbear_ed25519_host_key }}")
@@ -16,9 +16,9 @@
   no_log: true
 
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
-  ansible.builtin.template:
+  ansible.builtin.copy:
     dest: /etc/dropbear/authorized_keys
-    src: files/etc/dropbear/authorized_keys.j2
+    src: files/{{ inventory_hostname }}/etc/dropbear/authorized_keys
     mode: u=rw,g=,o=
     backup: true
 
@@ -30,9 +30,9 @@
     backup: true
 
 - name: Configure Firewall
-  ansible.builtin.copy:
+  ansible.builtin.template:
     dest: /etc/config/firewall
-    src: files/{{ inventory_hostname }}/etc/config/firewall
+    src: files/{{ inventory_hostname }}/etc/config/firewall.j2
     mode: u=rw,g=r,o=r
     backup: true
 
@@ -188,3 +188,89 @@
     src: files/etc/rc.local.j2
     mode: u=rwx,g=rx,o=rx
     backup: true
+
+############################################
+# USB disk
+############################################
+- name: Configure USB disk if defined
+  when: openwrt_backup_directory is defined and usb_disk_device is defined
+  block:
+    - name: Configure attached block device {{ usb_disk_device }}
+      ansible.builtin.template:
+        dest: /etc/config/fstab
+        src: files/{{ inventory_hostname }}/etc/config/fstab.j2
+        mode: u=rw,g=r,o=r
+        backup: true
+
+    - name: Create directory {{ usb_disk_mount_path }}
+      ansible.builtin.file:
+        path: "{{ usb_disk_mount_path }}"
+        state: directory
+        mode: u=rwx,g=rx,o=rx
+
+    - name: Check the mounted disks
+      ansible.builtin.command: |
+        cat /proc/mounts
+      changed_when: false
+      register: mount_output
+
+    - name: Create file usb_disk_mount_path/USB_DISK_NOT_PRESENT if usb_disk_device_1 is not mounted
+      ansible.builtin.copy:
+        dest: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
+        content: ""
+        force: false
+        mode: u=rw,g=r,o=r
+      when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+
+    - name: Create "media" directories on the disk
+      ansible.builtin.file:
+        path: "{{ usb_disk_mount_path }}/{{ item.name }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
+      loop:
+        - name: media
+          mode: u=rx,g=rx,o=rx
+        - name: media/movies
+        - name: media/music
+
+    - name: Mount USB disk
+      ansible.builtin.command: |
+        /sbin/block mount
+      register: block_mount
+      changed_when: block_mount.stdout is not search('/dev/' + usb_disk_device + '1 is already mounted')
+      when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
+  rescue:
+    - name: Print when errors
+      ansible.builtin.fail:
+        msg: Restore from backup failed
+
+############################################
+# Add backup script
+############################################
+- name: Create backup directory
+  ansible.builtin.file:
+    path: "{{ openwrt_backup_directory }}"
+    state: directory
+    mode: u=rwx,g=rx,o=rx
+
+- name: Copy the backup script collectd_nlbwmon_vnstat-backup to /etc/init.d/
+  ansible.builtin.template:
+    dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
+    src: files/etc/init.d/collectd_nlbwmon_vnstat-backup.j2
+    mode: u=rwx,g=rx,o=rx
+    backup: true
+  notify: Enable collectd_nlbwmon_vnstat-backup on boot + restore data from backup
+
+- name: Configure to run collectd_nlbwmon_vnstat-backup daily
+  ansible.builtin.cron:
+    name: "Backup collectd nlbwmon vnstat databases"
+    minute: "0"
+    hour: "3"
+    job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
+
+- name: Restore data using collectd_nlbwmon_vnstat-backup
+  ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
+  args:
+    creates: /tmp/rrd/{{ inventory_hostname_short }}/cpu-0

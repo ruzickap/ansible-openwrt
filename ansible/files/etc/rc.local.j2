@@ -13,6 +13,7 @@ Content-Type: text/html; charset=UTF-8
 <html>
 <body>
     <h4>🔄 {{ inventory_hostname }} rebooted: $(date)</h4>
+    <details>
     <summary>📋 Last logs:</summary>
     <pre style="font-size: 10px;">
 $(tail -150 /var/log/system.log)

@@ -193,28 +193,28 @@ config rule
 ###########################
 
 config zone
-	option name		guest
+	option name		'guest'
 	option network		'guest'
-	option input		REJECT
-	option forward		REJECT
-	option output		ACCEPT
+	option input		'REJECT'
+	option forward		'REJECT'
+	option output		'ACCEPT'
 
 config forwarding 'guest_wan'
-	option src		guest
-	option dest		wan
+	option src		'guest'
+	option dest		'wan'
 
 # Allow Guest -> Router
 config rule 'guest_dns'
-	option name		Allow-DNS-Guest
-	option src		guest
-	option dest_port	53
+	option name		'Allow-DNS-Guest'
+	option src		'guest'
+	option dest_port	'53'
 	option proto		'tcp udp'
-	option target		ACCEPT
+	option target		'ACCEPT'
 
 config rule 'guest_dhcp'
-	option name		Allow-DHCP-Guest
-	option src		guest
-	option dest_port	67
-	option proto		udp
-	option family		ipv4
-	option target		ACCEPT
+	option name		'Allow-DHCP-Guest'
+	option src		'guest'
+	option dest_port	'67'
+	option proto		'udp'
+	option family		'ipv4'
+	option target		'ACCEPT'

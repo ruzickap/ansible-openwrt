@@ -6,17 +6,16 @@ dhcp_hosts:
 
 dropbear_ed25519_host_key: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_DROPBEAR_ED25519_HOST_KEY') }}"
 
-enable_boot_services:
-  - banip
-  - collectd
-
 interfaces:
   - br-lan
   - eth0
+  - phy0-ap0
+  - phy1-ap0
+  - wan@eth0
 
 luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd wpa_supplicant"
 
-luci_statistics_collectd_tcpconns_localports: "22 443 22222"
+luci_statistics_collectd_tcpconns_localports: "22 443"
 
 # Mailtrap API credentials
 msmtp_auth_password: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_MSMP_AUTH_PASSWORD') }}"
@@ -57,12 +56,12 @@ openwrt_packages:
   - mc
   - msmtp-mta
   - openssh-sftp-server
-  - python3-codecs
   - python3-decimal
+  - python3-idna
   - python3-light
   - python3-logging
-  - python3-urllib
   - rsync
+  - telnet-bsd
   # keep-sorted end
 
 root_password: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_ROOT_PASSWORD') }}"

@@ -13,6 +13,9 @@ config wifi-iface 'default_radio0'
 	option ssid '{{ wifi_ssid }} 2.4 GHz'
 	option encryption 'sae-mixed'
 	option key '{{ wifi_password }}'
+	option macfilter 'deny'
+	# Xiaomi device flooding auth requests without completing handshake, causing log spam
+	list maclist '70:89:76:14:41:c5'
 
 config wifi-device 'radio1'
 	option type 'mac80211'
@@ -36,3 +39,6 @@ config wifi-iface 'guest'
 	option ssid '{{ wifi_ssid }} 2.4 GHz Guest'
 	option encryption 'none'
 	option disabled '0'
+	option macfilter 'deny'
+	# Xiaomi device flooding auth requests without completing handshake, causing log spam
+	list maclist '70:89:76:14:41:c5'
