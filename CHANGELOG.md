@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.0.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.1.0...v3.0.0) (2026-05-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* overhaul OpenWrt config with new services and reorganized files ([#99](https://github.com/ruzickap/ansible-openwrt/issues/99))
+
+### Features
+
+* add build-firmware mise task and pin tool versions ([#107](https://github.com/ruzickap/ansible-openwrt/issues/107)) ([1557263](https://github.com/ruzickap/ansible-openwrt/commit/155726331e5d257e268e5fdc36e09f23ae6482a5))
+* add firmware build improvements and ansible enhancements ([#108](https://github.com/ruzickap/ansible-openwrt/issues/108)) ([535e174](https://github.com/ruzickap/ansible-openwrt/commit/535e1744fc179c567327326896a54c5489f3bc06))
+* add initial SSH access and root password to firmware build ([#109](https://github.com/ruzickap/ansible-openwrt/issues/109)) ([686fa2f](https://github.com/ruzickap/ansible-openwrt/commit/686fa2f8e2e607272fc2a9ae546958c844c52d57))
+* migrate secrets from Ansible Vault to env var lookups via fnox ([#96](https://github.com/ruzickap/ansible-openwrt/issues/96)) ([b4e20c9](https://github.com/ruzickap/ansible-openwrt/commit/b4e20c94a8f32042e08a6f66a6563b0e983c423b))
+* overhaul OpenWrt config with new services and reorganized files ([#99](https://github.com/ruzickap/ansible-openwrt/issues/99)) ([1cd2b58](https://github.com/ruzickap/ansible-openwrt/commit/1cd2b582df9cb6e6716c0dc44c47b75603900569))
+* remove dropbear RSA host key support ([#104](https://github.com/ruzickap/ansible-openwrt/issues/104)) ([e43be0b](https://github.com/ruzickap/ansible-openwrt/commit/e43be0bc12dbfa4a5aa9ce740c4dec4cdee0ead6))
+
+
+### Bug Fixes
+
+* correct secret paths and env variable names ([#103](https://github.com/ruzickap/ansible-openwrt/issues/103)) ([c0b77f7](https://github.com/ruzickap/ansible-openwrt/commit/c0b77f72da1ac6855bd10ceb4470d0b6c38dfccc))
+* override openwrt container entrypoint to prevent immediate exit ([#106](https://github.com/ruzickap/ansible-openwrt/issues/106)) ([8bb1c89](https://github.com/ruzickap/ansible-openwrt/commit/8bb1c890126108e21467e0caa17ce3950f2f9e90))
+* remove unconditional reboot task from playbook ([#111](https://github.com/ruzickap/ansible-openwrt/issues/111)) ([82b31b8](https://github.com/ruzickap/ansible-openwrt/commit/82b31b8db04561da41582010b3289fe1ce6163c6))
+* use cat for firewall rule and add email to SSH key ([#110](https://github.com/ruzickap/ansible-openwrt/issues/110)) ([0bc30c7](https://github.com/ruzickap/ansible-openwrt/commit/0bc30c7bb63c753d6fbb4de474cf99d00f7db45a))
+
 ## [2.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.0.0...v2.1.0) (2026-03-13)
 
 
