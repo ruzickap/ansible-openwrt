@@ -25,7 +25,7 @@ uci set wireless.default_radio1.key='${WIFI_PASSWORD}'
 uci commit wireless
 
 # Set random root password
-echo 'root:${ROOT_PASSWORD}' | chpasswd
+printf '%s\n%s\n' \"${ROOT_PASSWORD}\" \"${ROOT_PASSWORD}\" | passwd root
 
 # Allow SSH on WAN
 uci add firewall rule
