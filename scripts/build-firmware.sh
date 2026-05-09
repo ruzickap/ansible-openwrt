@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
 # Build custom OpenWrt firmware using the Sysupgrade API
-# Usage: build-firmware.sh <target> <profile> <host_vars_file> <defaults>
+# Usage: build-firmware.sh <target> <profile> <hostname>
 
 set -euxo pipefail
 
-TARGET="${1:?Usage: build-firmware.sh <target> <profile> <host_vars_file> <defaults>}"
+TARGET="${1:?Usage: build-firmware.sh <target> <profile> <hostname>}"
 PROFILE="${2:?}"
-HOST_VARS="${3:?}"
-DEFAULTS="${4:?}"
+HOSTNAME="${3:?}"
+
+HOST_VARS="ansible/host_vars/${HOSTNAME}"
+WIFI_SSID=$(yq '.wifi_ssid' "${HOST_VARS}")
+WIFI_PASSWORD_VAR=$(echo "${HOSTNAME}" | tr '[:lower:].-' '[:upper:]__')_WIFI_PASSWORD
+WIFI_PASSWORD="${!WIFI_PASSWORD_VAR:?Environment variable ${WIFI_PASSWORD_VAR} is not set}"
+
+DEFAULTS="uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
+uci set wireless.default_radio1.encryption='sae-mixed'
+uci set wireless.default_radio1.key='${WIFI_PASSWORD}'
+uci commit wireless"
 
 PACKAGES_JSON=$(yq -o=json '.openwrt_packages' "${HOST_VARS}")
 LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/latest |
