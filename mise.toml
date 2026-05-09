@@ -20,25 +20,9 @@ run = 'scripts/build-firmware.sh "ipq40xx/generic" "zyxel_nbg6617" "gate-bracha.
 [tasks."run-ansible:gate-xvx-cz"]
 description = "Run Ansible playbook for gate.xvx.cz"
 dir = "ansible"
-shell = "bash -c"
-run = """
-set -euxo pipefail
-if [ ! -f /tmp/ansible-openwrt.log ]; then
-  ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz 2>&1 | tee /tmp/ansible-openwrt.log
-else
-  ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz
-fi
-"""
+run = 'ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz 2>&1 | tee /tmp/ansible-openwrt-gate-xvx.cz.log'
 
 [tasks."run-ansible:gate-bracha-xvx-cz"]
 description = "Run Ansible playbook for gate-bracha.xvx.cz"
 dir = "ansible"
-shell = "bash -c"
-run = """
-set -euxo pipefail
-if [ ! -f /tmp/ansible-openwrt-bracha.log ]; then
-  ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz 2>&1 | tee /tmp/ansible-openwrt-bracha.log
-else
-  ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz
-fi
-"""
+run = 'ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz 2>&1 | tee /tmp/ansible-openwrt-gate-bracha.xvx.cz.log'

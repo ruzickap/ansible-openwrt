@@ -1,6 +1,6 @@
 [openwrt]
-# gate-bracha.xvx.cz
-gate.xvx.cz         ansible_host=192.168.1.1
+gate-bracha.xvx.cz ansible_host=176.74.157.134 ansible_port=22222
+gate.xvx.cz        ansible_host=192.168.1.1
 
 [openwrt:vars]
 ansible_user=root

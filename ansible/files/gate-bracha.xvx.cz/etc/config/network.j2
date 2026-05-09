@@ -1,11 +1,12 @@
+
 config interface 'loopback'
 	option device 'lo'
 	option proto 'static'
-	option ipaddr '127.0.0.1'
-	option netmask '255.0.0.0'
+	list ipaddr '127.0.0.1/8'
 
 config globals 'globals'
-	option ula_prefix 'fd29:c290:9781::/48'
+	option dhcp_default_duid '00046dbf49681d4d4ec18e656e0e065e7f52'
+	option ula_prefix 'fddf:4755:664::/48'
 
 config device
 	option name 'br-lan'
@@ -18,8 +19,7 @@ config device
 config interface 'lan'
 	option device 'br-lan'
 	option proto 'static'
-	option ipaddr '{{ network_subnet | ansible.utils.ipaddr(1) | regex_replace('^([^/]*).*', '\\1') }}'
-	option netmask '{{ network_subnet | ansible.utils.ipaddr('netmask') }}'
+	list ipaddr '{{ network_ip_subnet }}'
 	option ip6assign '60'
 
 config interface 'wan'
