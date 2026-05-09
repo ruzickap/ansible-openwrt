@@ -13,11 +13,33 @@ WIFI_SSID=$(yq '.wifi_ssid' "${HOST_VARS}")
 WIFI_PASSWORD_VAR=$(echo "${HOSTNAME}" | tr '[:lower:].-' '[:upper:]__')_WIFI_PASSWORD
 WIFI_PASSWORD="${!WIFI_PASSWORD_VAR:?Environment variable ${WIFI_PASSWORD_VAR} is not set}"
 
-DEFAULTS="uci delete wireless.default_radio1.disabled
+RANDOM_SUFFIX=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 10 || true)
+ROOT_PASSWORD="${HOSTNAME}12345${RANDOM_SUFFIX}"
+echo "🔑 Root password: ${ROOT_PASSWORD}"
+
+DEFAULTS="# Configure WiFi
+uci delete wireless.default_radio1.disabled
 uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
 uci set wireless.default_radio1.encryption='sae-mixed'
 uci set wireless.default_radio1.key='${WIFI_PASSWORD}'
-uci commit wireless"
+uci commit wireless
+
+# Set random root password
+echo 'root:${ROOT_PASSWORD}' | chpasswd
+
+# Allow SSH on WAN
+uci add firewall rule
+uci set firewall.@rule[-1].name='Allow-SSH-WAN'
+uci set firewall.@rule[-1].src='wan'
+uci set firewall.@rule[-1].dest_port='22'
+uci set firewall.@rule[-1].proto='tcp'
+uci set firewall.@rule[-1].target='ACCEPT'
+uci commit firewall
+
+# Add GitHub SSH public key for ruzickap
+mkdir -p /etc/dropbear
+wget -q -O /etc/dropbear/authorized_keys https://github.com/ruzickap.keys
+chmod 600 /etc/dropbear/authorized_keys"
 
 PACKAGES_JSON=$(yq -o=json '.openwrt_packages' "${HOST_VARS}")
 LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/latest |
