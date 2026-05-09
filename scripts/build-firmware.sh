@@ -2,7 +2,7 @@
 # Build custom OpenWrt firmware using the Sysupgrade API
 # Usage: build-firmware.sh <target> <profile> <hostname>
 
-set -euxo pipefail
+set -euo pipefail
 
 TARGET="${1:?Usage: build-firmware.sh <target> <profile> <hostname>}"
 PROFILE="${2:?}"
@@ -31,17 +31,19 @@ uci commit wireless
 printf '%s\n%s\n' \"${ROOT_PASSWORD}\" \"${ROOT_PASSWORD}\" | passwd root
 
 # Allow SSH on WAN
-uci add firewall rule
-uci set firewall.@rule[-1].name='Allow-SSH-WAN'
-uci set firewall.@rule[-1].src='wan'
-uci set firewall.@rule[-1].dest_port='22'
-uci set firewall.@rule[-1].proto='tcp'
-uci set firewall.@rule[-1].target='ACCEPT'
-uci commit firewall
+cat >> /etc/config/firewall << 'FIREWALL_EOF'
+
+config rule
+	option name 'Allow-SSH-WAN'
+	option src 'wan'
+	option dest_port '22'
+	option proto 'tcp'
+	option target 'ACCEPT'
+FIREWALL_EOF
 
 # Add GitHub SSH public key for ruzickap
 mkdir -p /etc/dropbear
-echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF58juRs3gDSCFXARSXBBSegOmmBxXln9MVk2Zcq3HGh' > /etc/dropbear/authorized_keys
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF58juRs3gDSCFXARSXBBSegOmmBxXln9MVk2Zcq3HGh petr.ruzicka@gmail.com' > /etc/dropbear/authorized_keys
 chmod 600 /etc/dropbear/authorized_keys"
 
 PACKAGES_JSON=$(yq -o=json '.openwrt_packages' "${HOST_VARS}")
@@ -70,7 +72,7 @@ fi
 while true; do
   HTTP_CODE=$(curl -s --compressed -o /tmp/build_status.json -w '%{http_code}' \
     "https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}")
-  echo "⏳ Build status: ${HTTP_CODE}"
+  echo "⏳ Build status: ${HTTP_CODE} - waiting for build to complete..."
   if [[ "${HTTP_CODE}" == "200" ]]; then
     break
   elif [[ "${HTTP_CODE}" == "202" ]]; then
