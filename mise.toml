@@ -31,16 +31,7 @@ WIFI_SSID=$(yq '.wifi_ssid' ansible/host_vars/gate-bracha.xvx.cz)
 DEFAULTS="uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
 uci set wireless.default_radio1.encryption='sae-mixed'
 uci set wireless.default_radio1.key='${GATE_BRACHA_XVX_CZ_WIFI_PASSWORD}'
-uci commit wireless
-uci set firewall.allow_wan_ssh=rule
-uci set firewall.allow_wan_ssh.name='Allow-WAN-SSH'
-uci set firewall.allow_wan_ssh.src='wan'
-uci set firewall.allow_wan_ssh.dest_port='22'
-uci set firewall.allow_wan_ssh.proto='tcp'
-uci set firewall.allow_wan_ssh.target='ACCEPT'
-uci commit firewall
-mkdir -p /etc/dropbear
-wget -qO /etc/dropbear/authorized_keys https://github.com/ruzickap.keys"
+uci commit wireless"
 scripts/build-firmware.sh "ipq40xx/generic" "zyxel_nbg6617" "ansible/host_vars/gate-bracha.xvx.cz" "${DEFAULTS}"
 """
 
