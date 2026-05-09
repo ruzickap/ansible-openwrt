@@ -17,7 +17,10 @@ RANDOM_SUFFIX=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 10 || true)
 ROOT_PASSWORD="${HOSTNAME}12345${RANDOM_SUFFIX}"
 echo "🔑 Root password: ${ROOT_PASSWORD}"
 
-DEFAULTS="# Configure WiFi
+DEFAULTS="exec > /root/uci-defaults.log 2>&1
+set -x
+
+# Configure WiFi
 uci delete wireless.default_radio1.disabled
 uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
 uci set wireless.default_radio1.encryption='sae-mixed'
@@ -38,7 +41,7 @@ uci commit firewall
 
 # Add GitHub SSH public key for ruzickap
 mkdir -p /etc/dropbear
-wget -q -O /etc/dropbear/authorized_keys https://github.com/ruzickap.keys
+echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF58juRs3gDSCFXARSXBBSegOmmBxXln9MVk2Zcq3HGh' > /etc/dropbear/authorized_keys
 chmod 600 /etc/dropbear/authorized_keys"
 
 PACKAGES_JSON=$(yq -o=json '.openwrt_packages' "${HOST_VARS}")
