@@ -6,7 +6,7 @@
     backup: true
 
 - name: Create dropbear_ed25519_host_key for dropbear
-  shell: |
+  ansible.builtin.shell: |
     python3 - <<'PY'
     import base64, pathlib
     data = base64.b64decode("{{ dropbear_ed25519_host_key }}")
@@ -215,9 +215,10 @@
       register: mount_output
 
     - name: Create file usb_disk_mount_path/USB_DISK_NOT_PRESENT if usb_disk_device_1 is not mounted
-      ansible.builtin.file:
-        path: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
-        state: touch
+      ansible.builtin.copy:
+        dest: "{{ usb_disk_mount_path }}/USB_DISK_NOT_PRESENT"
+        content: ""
+        force: false
         mode: u=rw,g=r,o=r
       when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
 
@@ -273,6 +274,3 @@
   ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
   args:
     creates: /tmp/rrd/{{ inventory_hostname_short }}/cpu-0
-
-- name: Stop ansible execution after common tasks
-  ansible.builtin.meta: end_play
