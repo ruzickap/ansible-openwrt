@@ -9,6 +9,7 @@
         dest: /etc/config/fstab
         src: files/{{ inventory_hostname }}/etc/config/fstab.j2
         mode: u=rw,g=r,o=r
+        backup: true
 
     - name: Create directory {{ usb_disk_mount_path }}
       ansible.builtin.file:
@@ -54,6 +55,7 @@
         dest: /etc/config/hd-idle
         src: files/{{ inventory_hostname }}/etc/config/hd-idle
         mode: u=rw,g=,o=
+        backup: true
   rescue:
     - name: Print when errors
       ansible.builtin.fail:
@@ -73,6 +75,7 @@
     dest: /etc/init.d/collectd_nlbwmon_vnstat-backup
     src: files/etc/init.d/collectd_nlbwmon_vnstat-backup.j2
     mode: u=rwx,g=rx,o=rx
+    backup: true
   notify: Enable collectd_nlbwmon_vnstat-backup on boot + restore data from backup
 
 - name: Configure to run collectd_nlbwmon_vnstat-backup daily
@@ -92,12 +95,14 @@
     dest: /etc/config/prometheus-node-exporter-ucode
     src: files/{{ inventory_hostname }}/etc/config/prometheus-node-exporter-ucode
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Configure cloudflared
   ansible.builtin.template:
     dest: /etc/config/cloudflared
     src: files/{{ inventory_hostname }}/etc/config/cloudflared.j2
     mode: u=rw,g=,o=
+    backup: true
 
 ############################################
 # Transmission
@@ -108,6 +113,7 @@
     dest: /etc/config/transmission
     src: files/{{ inventory_hostname }}/etc/config/transmission.j2
     mode: u=rw,g=r,o=r
+    backup: true
 
 - name: Start transmission
   community.general.openwrt_init:
@@ -134,12 +140,14 @@
     dest: /usr/share/rpcd/acl.d/homepage.json
     src: files/{{ inventory_hostname }}/usr/share/rpcd/acl.d/homepage.json
     mode: u=rw,g=r,o=r
+    backup: true
 
 - name: Allow Homepage OpenWRT widget to access Luci via RPC
   ansible.builtin.template:
     dest: /etc/config/rpcd
     src: files/{{ inventory_hostname }}/etc/config/rpcd.j2
     mode: u=rw,g=r,o=r
+    backup: true
   no_log: true
 
 - name: Configure samba4
@@ -147,3 +155,4 @@
     dest: /etc/config/samba4
     src: files/{{ inventory_hostname }}/etc/config/samba4.j2
     mode: u=rw,g=,o=
+    backup: true

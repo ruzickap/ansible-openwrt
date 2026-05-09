@@ -1,5 +1,5 @@
 [tools]
-ansible = "13.6.0"
+ansible = { version = "13.6.0", pipx_args = "--preinstall passlib" }
 fnox = "1.23.0"
 pipx = "1.12.0"
 
@@ -9,47 +9,36 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 [env]
 _.fnox-env = { tools = true }
 
-[tasks.build-firmware]
-description = "Build custom OpenWrt firmware for ASUS RT-AX53U (gate.xvx.cz) using the Sysupgrade API"
-shell = "bash -c"
-run = """
-set -euxo pipefail
-PACKAGES_JSON=$(yq -o=json '.openwrt_packages' ansible/host_vars/gate.xvx.cz)
-LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/latest | jq -r '.latest[] | select(test("-rc[0-9]+$") | not) | select(test("^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$"))' | sort -V | tail -n 1)
-echo "Latest stable: ${LATEST_STABLE}"
+[tasks."build-firmware:gate-xvx-cz"]
+description = "Build custom OpenWrt firmware for ASUS RT-AX53U (gate.xvx.cz)"
+run = 'scripts/build-firmware.sh "ramips/mt7621" "asus_rt-ax53u" "gate.xvx.cz"'
 
-BUILD_RESPONSE=$(curl -s --compressed -X POST https://sysupgrade.openwrt.org/api/v1/build \\
-  -H "Content-Type: application/json" \\
-  -d "$(jq -n --arg target "ramips/mt7621" --arg profile "asus_rt-ax53u" --arg version "${LATEST_STABLE}" --argjson packages "${PACKAGES_JSON}" '{target: $target, profile: $profile, version: $version, packages: $packages, diff_packages: false}')")
+[tasks."build-firmware:gate-bracha-xvx-cz"]
+description = "Build custom OpenWrt firmware for ZyXEL NBG6617 (gate-bracha.xvx.cz)"
+run = 'scripts/build-firmware.sh "ipq40xx/generic" "zyxel_nbg6617" "gate-bracha.xvx.cz"'
 
-REQUEST_HASH=$(jq -r '.request_hash' <<< "${BUILD_RESPONSE}")
-echo "Request hash: ${REQUEST_HASH}"
-
-while true; do
-  HTTP_CODE=$(curl -s --compressed -o /tmp/build_status.json -w '%{http_code}' "https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}")
-  echo "Build status: ${HTTP_CODE}"
-  if [[ "${HTTP_CODE}" == "200" ]]; then
-    break
-  fi
-  sleep 10
-done
-
-BIN_DIR=$(jq -r '.bin_dir' /tmp/build_status.json)
-IMAGE_NAME=$(jq -r '.images[] | select(.type == "sysupgrade") | .name' /tmp/build_status.json)
-IMAGE_URL="https://sysupgrade.openwrt.org/store/${BIN_DIR}/${IMAGE_NAME}"
-echo "🔍 Build status JSON: https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}"
-echo "👉 sysupgrade -v -n -p ${IMAGE_URL}"
-"""
-
-[tasks.run]
-description = "Run Ansible playbook"
+[tasks."run-ansible:gate-xvx-cz"]
+description = "Run Ansible playbook for gate.xvx.cz"
 dir = "ansible"
 shell = "bash -c"
 run = """
 set -euxo pipefail
 if [ ! -f /tmp/ansible-openwrt.log ]; then
-  ansible-playbook --diff main.yml -i inventory/hosts 2>&1 | tee /tmp/ansible-openwrt.log
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz 2>&1 | tee /tmp/ansible-openwrt.log
 else
-  ansible-playbook --diff main.yml -i inventory/hosts
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz
+fi
+"""
+
+[tasks."run-ansible:gate-bracha-xvx-cz"]
+description = "Run Ansible playbook for gate-bracha.xvx.cz"
+dir = "ansible"
+shell = "bash -c"
+run = """
+set -euxo pipefail
+if [ ! -f /tmp/ansible-openwrt-bracha.log ]; then
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz 2>&1 | tee /tmp/ansible-openwrt-bracha.log
+else
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz
 fi
 """

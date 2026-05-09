@@ -3,6 +3,7 @@
     dest: /etc/config/system
     src: files/{{ inventory_hostname }}/etc/config/system.j2
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Create dropbear_ed25519_host_key for dropbear
   shell: |
@@ -19,24 +20,28 @@
     dest: /etc/dropbear/authorized_keys
     src: files/etc/dropbear/authorized_keys.j2
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Configure networks
   ansible.builtin.template:
     dest: /etc/config/network
     src: files/{{ inventory_hostname }}/etc/config/network.j2
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Configure Firewall
   ansible.builtin.copy:
     dest: /etc/config/firewall
     src: files/{{ inventory_hostname }}/etc/config/firewall
     mode: u=rw,g=r,o=r
+    backup: true
 
 - name: Configure WiFi
   ansible.builtin.template:
     dest: /etc/config/wireless
     src: files/{{ inventory_hostname }}/etc/config/wireless.j2
     mode: u=rw,g=r,o=r
+    backup: true
   no_log: true
 
 - name: Set root password
@@ -44,6 +49,7 @@
     path: /etc/shadow
     regexp: "^root:([^:]*):"
     replace: "root:{{ root_password | string | password_hash('sha256') }}:"
+    backup: true
   changed_when: false
 
 - name: Install packages
@@ -55,16 +61,19 @@
     dest: /etc/config/dhcp
     src: files/{{ inventory_hostname }}/etc/config/dhcp.j2
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Change root shell to /bin/bash
   ansible.builtin.replace:
     path: /etc/passwd
     regexp: "^root:(.*):/bin/ash"
     replace: "root:\\1:/bin/bash"
+    backup: true
 
 - name: Add nice prompt for root user
   ansible.builtin.blockinfile:
     dest: /etc/profile
+    backup: true
     block: |
       ps1_prompt() {
           local ps1_exit=$?
@@ -90,6 +99,7 @@
   ansible.builtin.copy:
     dest: /etc/profile.d/history_format.sh
     mode: u=rw,g=r,o=r
+    backup: true
     content: |
       HISTTIMEFORMAT="|%F %R| "
 
@@ -98,18 +108,21 @@
     dest: /etc/config/vnstat
     src: files/{{ inventory_hostname }}/etc/config/vnstat.j2
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Luci statistics (/etc/config/luci_statistics)
   ansible.builtin.template:
     dest: /etc/config/luci_statistics
     src: files/{{ inventory_hostname }}/etc/config/luci_statistics.j2
     mode: u=rw,g=r,o=r
+    backup: true
 
 - name: Configure uhttpd (Use HTTPS for LuCI)
   ansible.builtin.copy:
     dest: /etc/config/uhttpd
     src: files/{{ inventory_hostname }}/etc/config/uhttpd
     mode: u=rw,g=,o=
+    backup: true
 
 - name: Create directory for mc inside ~/.config
   ansible.builtin.file:
@@ -121,6 +134,7 @@
   ansible.builtin.copy:
     dest: ~/.config/mc/ini
     mode: u=rw,g=r,o=r
+    backup: true
     content: |
       [Midnight-Commander]
       auto_save_setup=0
@@ -141,6 +155,7 @@
   ansible.builtin.copy:
     dest: /etc/profile.d/my-mc.sh
     mode: u=rwx,g=rx,o=rx
+    backup: true
     content: |
       #!/usr/bin/env sh
 
@@ -153,6 +168,7 @@
     dest: /etc/config/banip
     src: files/{{ inventory_hostname }}/etc/config/banip
     mode: u=rw,g=,o=
+    backup: true
 
 ############################################
 # Configure msmtp + email notifications
@@ -163,6 +179,7 @@
     dest: /etc/msmtprc
     src: files/etc/msmtprc.j2
     mode: u=rw,g=,o=
+    backup: true
   no_log: true
 
 - name: Reboot notification
@@ -170,3 +187,4 @@
     dest: /etc/rc.local
     src: files/etc/rc.local.j2
     mode: u=rwx,g=rx,o=rx
+    backup: true
