@@ -20,11 +20,6 @@
 
     - name: Include specific tasks
       ansible.builtin.include_tasks: tasks/tasks_{{ inventory_hostname }}.yml
-
-    - name: Reboot the router
-      ansible.builtin.command: reboot
-      changed_when: true
-
   handlers:
     - name: Import handlers
       ansible.builtin.import_tasks: handlers/main.yml
