@@ -202,10 +202,10 @@ config rule
 # port redirect for Plex 56410 -> {{ dhcp_hosts | selectattr('name', 'equalto', 'truenas') | map(attribute='ip') | first }}:32400
 config redirect
 	option name      'plex'
- 	option target    'DNAT'
- 	option src       'wan'
- 	option src_dport '56410'
- 	option dest      'lan'
- 	option dest_port '32400'
- 	option proto     'tcp'
- 	option dest_ip   '{{ dhcp_hosts | selectattr('name', 'equalto', 'truenas') | map(attribute='ip') | first }}'
+	option target    'DNAT'
+	option src       'wan'
+	option src_dport '56410'
+	option dest      'lan'
+	option dest_port '32400'
+	option proto     'tcp'
+	option dest_ip   '{{ dhcp_hosts | selectattr('name', 'equalto', 'truenas') | map(attribute='ip') | first }}'
