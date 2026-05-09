@@ -19,7 +19,8 @@ LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/late
 echo "Latest stable: ${LATEST_STABLE}"
 
 WIFI_SSID=$(yq '.wifi_ssid' ansible/host_vars/gate.xvx.cz)
-WIFI_DEFAULTS="uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
+WIFI_DEFAULTS="# $(date -u +%Y%m%d%H%M%S)
+uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
 uci set wireless.default_radio1.encryption='sae-mixed'
 uci set wireless.default_radio1.key='${GATE_XVX_CZ_WIFI_PASSWORD}'
 uci commit wireless"
@@ -67,7 +68,8 @@ LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/late
 echo "Latest stable: ${LATEST_STABLE}"
 
 WIFI_SSID=$(yq '.wifi_ssid' ansible/host_vars/gate-bracha.xvx.cz)
-WIFI_DEFAULTS="uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
+WIFI_DEFAULTS="# $(date -u +%Y%m%d%H%M%S)
+uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
 uci set wireless.default_radio1.encryption='sae-mixed'
 uci set wireless.default_radio1.key='${GATE_BRACHA_XVX_CZ_WIFI_PASSWORD}'
 uci commit wireless
