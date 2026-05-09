@@ -9,7 +9,7 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 [env]
 _.fnox-env = { tools = true }
 
-[tasks.build-firmware]
+[tasks."build-firmware:gate-xvx-cz"]
 description = "Build custom OpenWrt firmware for ASUS RT-AX53U (gate.xvx.cz) using the Sysupgrade API"
 shell = "bash -c"
 run = """
@@ -18,11 +18,22 @@ PACKAGES_JSON=$(yq -o=json '.openwrt_packages' ansible/host_vars/gate.xvx.cz)
 LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/latest | jq -r '.latest[] | select(test("-rc[0-9]+$") | not) | select(test("^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$"))' | sort -V | tail -n 1)
 echo "Latest stable: ${LATEST_STABLE}"
 
+WIFI_SSID=$(yq '.wifi_ssid' ansible/host_vars/gate.xvx.cz)
+WIFI_DEFAULTS="uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
+uci set wireless.default_radio1.encryption='sae-mixed'
+uci set wireless.default_radio1.key='${GATE_XVX_CZ_WIFI_PASSWORD}'
+uci commit wireless"
+
 BUILD_RESPONSE=$(curl -s --compressed -X POST https://sysupgrade.openwrt.org/api/v1/build \\
   -H "Content-Type: application/json" \\
-  -d "$(jq -n --arg target "ramips/mt7621" --arg profile "asus_rt-ax53u" --arg version "${LATEST_STABLE}" --argjson packages "${PACKAGES_JSON}" '{target: $target, profile: $profile, version: $version, packages: $packages, diff_packages: false}')")
+  -d "$(jq -n --arg target "ramips/mt7621" --arg profile "asus_rt-ax53u" --arg version "${LATEST_STABLE}" --argjson packages "${PACKAGES_JSON}" --arg defaults "${WIFI_DEFAULTS}" '{target: $target, profile: $profile, version: $version, packages: $packages, diff_packages: false, defaults: $defaults}')")
 
 REQUEST_HASH=$(jq -r '.request_hash' <<< "${BUILD_RESPONSE}")
+if [[ "${REQUEST_HASH}" == "null" ]]; then
+  echo "Build request failed:"
+  jq . <<< "${BUILD_RESPONSE}"
+  exit 1
+fi
 echo "Request hash: ${REQUEST_HASH}"
 
 while true; do
@@ -30,8 +41,13 @@ while true; do
   echo "Build status: ${HTTP_CODE}"
   if [[ "${HTTP_CODE}" == "200" ]]; then
     break
+  elif [[ "${HTTP_CODE}" == "202" ]]; then
+    sleep 10
+  else
+    echo "Build failed (HTTP ${HTTP_CODE}):"
+    jq . /tmp/build_status.json
+    exit 1
   fi
-  sleep 10
 done
 
 BIN_DIR=$(jq -r '.bin_dir' /tmp/build_status.json)
@@ -41,15 +57,85 @@ echo "🔍 Build status JSON: https://sysupgrade.openwrt.org/api/v1/build/${REQU
 echo "👉 sysupgrade -v -n -p ${IMAGE_URL}"
 """
 
-[tasks.run]
-description = "Run Ansible playbook"
+[tasks."build-firmware:gate-bracha-xvx-cz"]
+description = "Build custom OpenWrt firmware for ZyXEL NBG6617 (gate-bracha.xvx.cz) using the Sysupgrade API"
+shell = "bash -c"
+run = """
+set -euxo pipefail
+PACKAGES_JSON=$(yq -o=json '.openwrt_packages' ansible/host_vars/gate-bracha.xvx.cz)
+LATEST_STABLE=$(curl -sL --compressed https://sysupgrade.openwrt.org/api/v1/latest | jq -r '.latest[] | select(test("-rc[0-9]+$") | not) | select(test("^[0-9]+\\\\.[0-9]+\\\\.[0-9]+$"))' | sort -V | tail -n 1)
+echo "Latest stable: ${LATEST_STABLE}"
+
+WIFI_SSID=$(yq '.wifi_ssid' ansible/host_vars/gate-bracha.xvx.cz)
+WIFI_DEFAULTS="uci set wireless.default_radio1.ssid='${WIFI_SSID} 5 GHz'
+uci set wireless.default_radio1.encryption='sae-mixed'
+uci set wireless.default_radio1.key='${GATE_BRACHA_XVX_CZ_WIFI_PASSWORD}'
+uci commit wireless
+uci set firewall.allow_wan_ssh=rule
+uci set firewall.allow_wan_ssh.name='Allow-WAN-SSH'
+uci set firewall.allow_wan_ssh.src='wan'
+uci set firewall.allow_wan_ssh.dest_port='22'
+uci set firewall.allow_wan_ssh.proto='tcp'
+uci set firewall.allow_wan_ssh.target='ACCEPT'
+uci commit firewall
+mkdir -p /etc/dropbear
+wget -qO /etc/dropbear/authorized_keys https://github.com/ruzickap.keys"
+
+BUILD_RESPONSE=$(curl -s --compressed -X POST https://sysupgrade.openwrt.org/api/v1/build \\
+  -H "Content-Type: application/json" \\
+  -d "$(jq -n --arg target "ipq40xx/generic" --arg profile "zyxel_nbg6617" --arg version "${LATEST_STABLE}" --argjson packages "${PACKAGES_JSON}" --arg defaults "${WIFI_DEFAULTS}" '{target: $target, profile: $profile, version: $version, packages: $packages, diff_packages: false, defaults: $defaults}')")
+
+REQUEST_HASH=$(jq -r '.request_hash' <<< "${BUILD_RESPONSE}")
+if [[ "${REQUEST_HASH}" == "null" ]]; then
+  echo "Build request failed:"
+  jq . <<< "${BUILD_RESPONSE}"
+  exit 1
+fi
+echo "Request hash: ${REQUEST_HASH}"
+
+while true; do
+  HTTP_CODE=$(curl -s --compressed -o /tmp/build_status.json -w '%{http_code}' "https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}")
+  echo "Build status: ${HTTP_CODE}"
+  if [[ "${HTTP_CODE}" == "200" ]]; then
+    break
+  elif [[ "${HTTP_CODE}" == "202" ]]; then
+    sleep 10
+  else
+    echo "Build failed (HTTP ${HTTP_CODE}):"
+    jq . /tmp/build_status.json
+    exit 1
+  fi
+done
+
+BIN_DIR=$(jq -r '.bin_dir' /tmp/build_status.json)
+IMAGE_NAME=$(jq -r '.images[] | select(.type == "sysupgrade") | .name' /tmp/build_status.json)
+IMAGE_URL="https://sysupgrade.openwrt.org/store/${BIN_DIR}/${IMAGE_NAME}"
+echo "🔍 Build status JSON: https://sysupgrade.openwrt.org/api/v1/build/${REQUEST_HASH}"
+echo "👉 sysupgrade -v -n -p ${IMAGE_URL}"
+"""
+
+[tasks."run-ansible:gate-xvx-cz"]
+description = "Run Ansible playbook for gate.xvx.cz"
 dir = "ansible"
 shell = "bash -c"
 run = """
 set -euxo pipefail
 if [ ! -f /tmp/ansible-openwrt.log ]; then
-  ansible-playbook --diff main.yml -i inventory/hosts 2>&1 | tee /tmp/ansible-openwrt.log
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz 2>&1 | tee /tmp/ansible-openwrt.log
 else
-  ansible-playbook --diff main.yml -i inventory/hosts
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz
+fi
+"""
+
+[tasks."run-ansible:gate-bracha-xvx-cz"]
+description = "Run Ansible playbook for gate-bracha.xvx.cz"
+dir = "ansible"
+shell = "bash -c"
+run = """
+set -euxo pipefail
+if [ ! -f /tmp/ansible-openwrt-bracha.log ]; then
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz 2>&1 | tee /tmp/ansible-openwrt-bracha.log
+else
+  ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz
 fi
 """
