@@ -2,7 +2,7 @@
 # Build custom OpenWrt firmware using the Sysupgrade API
 # Usage: build-firmware.sh <target> <profile> <hostname>
 
-set -euxo pipefail
+set -euo pipefail
 
 TARGET="${1:?Usage: build-firmware.sh <target> <profile> <hostname>}"
 PROFILE="${2:?}"
