@@ -12,12 +12,30 @@ Ansible playbooks configuring OpenWrt devices (Wi-Fi routers)
 Build custom firmware using the OpenWrt Sysupgrade API:
 
 ```bash
-mise run build-firmware
+mise run build-firmware:gate-xvx-cz
 ```
 
-## [ZyXEL NBG6617](https://openwrt.org/toh/zyxel/nbg6617)
+Run Ansible playbook:
+
+```bash
+mise run run-ansible:gate-xvx-cz
+```
+
+## [ZyXEL NBG6617](https://openwrt.org/toh/zyxel/nbg6617) - gate-bracha.xvx.cz
 
 * [Firmware](https://firmware-selector.openwrt.org/?version=24.10.0&target=ipq40xx%2Fgeneric&id=zyxel_nbg6617)
+
+Build custom firmware using the OpenWrt Sysupgrade API:
+
+```bash
+mise run build-firmware:gate-bracha-xvx-cz
+```
+
+Run Ansible playbook:
+
+```bash
+mise run run-ansible:gate-bracha-xvx-cz
+```
 
 ---
 
