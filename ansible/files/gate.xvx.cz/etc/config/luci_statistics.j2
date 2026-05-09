@@ -189,10 +189,6 @@ config statistics 'collectd_ping'
 	option Interval '30'
 	option Hosts 'www.google.com'
 
-config statistics 'collectd_processes'
-	option enable '1'
-	option Processes '{{ luci_statistics_collectd_processes_processes }}'
-
 config statistics 'collectd_sensors'
 	option enable '0'
 

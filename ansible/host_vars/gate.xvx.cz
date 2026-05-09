@@ -31,8 +31,6 @@ interfaces:
 
 luci_homepage_openwrt_widget_password_hash: "{{ lookup('env', 'GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH') }}"
 
-luci_statistics_collectd_processes_processes: "cloudflared collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd wpa_supplicant"
-
 luci_statistics_collectd_tcpconns_localports: "21 22 443"
 
 # Mailtrap API credentials
@@ -58,7 +56,6 @@ openwrt_packages:
   - collectd-mod-entropy
   - collectd-mod-ipstatistics
   - collectd-mod-ping
-  - collectd-mod-processes
   - collectd-mod-tcpconns
   - collectd-mod-uptime
   - htop
