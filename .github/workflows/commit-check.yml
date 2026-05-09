@@ -25,3 +25,6 @@ jobs:
         env:
           CCHK_SUBJECT_CAPITALIZED: false
           CCHK_SUBJECT_MAX_LENGTH: 72
+          # Skip branch-name checks for automation bots. Ex. dependabot hardcodes the `dependabot/<ecosystem>/...` branch prefix and cannot satisfy Conventional Branch
+          CCHK_IGNORE_AUTHORS: "copilot[bot],dependabot[bot],github-actions[bot]"
+          CCHK_BRANCH_IGNORE_AUTHORS: "copilot[bot],dependabot[bot],github-actions[bot]"
