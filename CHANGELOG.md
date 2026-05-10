@@ -1,5 +1,14 @@
 # Changelog
 
+## [3.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.0.0...v3.1.0) (2026-05-10)
+
+
+### Features
+
+* add cloudflared configuration for gate-bracha.xvx.cz ([#116](https://github.com/ruzickap/ansible-openwrt/issues/116)) ([884e5bc](https://github.com/ruzickap/ansible-openwrt/commit/884e5bc520ae4d2bbfcde92f6a0cf7760f1369c0))
+* add gate-bracha.xvx.cz configuration and refactor common tasks ([#113](https://github.com/ruzickap/ansible-openwrt/issues/113)) ([b39d083](https://github.com/ruzickap/ansible-openwrt/commit/b39d083b09a0f21b487d426a1b1df3548eba867e))
+* set hostname during firmware build ([#117](https://github.com/ruzickap/ansible-openwrt/issues/117)) ([06b2ff4](https://github.com/ruzickap/ansible-openwrt/commit/06b2ff47fb07a6a9e27f5cd2dc10ebc64bf1ac7d))
+
 ## [3.0.0](https://github.com/ruzickap/ansible-openwrt/compare/v2.1.0...v3.0.0) (2026-05-09)
 
 
