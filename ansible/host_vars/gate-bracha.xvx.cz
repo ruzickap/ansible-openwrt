@@ -1,4 +1,6 @@
 # keep-sorted start newline_separated=yes
+cloudflare_api_key: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_CLOUDFLARE_API_KEY') }}"
+
 dhcp_hosts:
   - ip: 192.168.1.2
     name: truenas
@@ -45,6 +47,7 @@ openwrt_packages:
   - kmod-usb-storage-uas
   - less
   - luci-app-banip
+  - luci-app-cloudflared
   - luci-app-nlbwmon
   - luci-app-statistics
   - luci-app-vnstat2

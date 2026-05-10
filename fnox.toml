@@ -2,6 +2,7 @@
 ps = { type = "aws-ps", profile = "my-aws", region = "eu-central-1" }
 
 [secrets]
+GATE_BRACHA_XVX_CZ_CLOUDFLARE_API_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/gate-bracha.xvx.cz/CLOUDFLARE_API_KEY", if_missing = "error" }
 GATE_BRACHA_XVX_CZ_DROPBEAR_ED25519_HOST_KEY = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/gate-bracha.xvx.cz/DROPBEAR_ED25519_HOST_KEY", if_missing = "error" }
 GATE_BRACHA_XVX_CZ_MSMP_AUTH_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/gate-bracha.xvx.cz/MSMTP_AUTH_PASSWORD", if_missing = "error" }
 GATE_BRACHA_XVX_CZ_ROOT_PASSWORD = { provider = "ps", value = "/github/ruzickap/ansible-openwrt/gate-bracha.xvx.cz/ROOT_PASSWORD", if_missing = "error" }
