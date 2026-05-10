@@ -17,8 +17,13 @@ RANDOM_SUFFIX=$(tr -dc 'A-Za-z0-9' < /dev/urandom | head -c 10 || true)
 ROOT_PASSWORD="${HOSTNAME}12345${RANDOM_SUFFIX}"
 echo "🔑 Root password: ${ROOT_PASSWORD}"
 
+SHORT_HOSTNAME="${HOSTNAME%%.*}"
+
 DEFAULTS="exec > /root/uci-defaults.log 2>&1
 set -x
+
+# Set hostname
+sed -i \"s/option hostname .*/option hostname '${SHORT_HOSTNAME}'/\" /etc/config/system
 
 # Configure WiFi
 uci delete wireless.default_radio1.disabled
