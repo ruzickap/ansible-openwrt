@@ -1,0 +1,7 @@
+- name: Configure cloudflared
+  ansible.builtin.template:
+    dest: /etc/config/cloudflared
+    src: files/{{ inventory_hostname }}/etc/config/cloudflared.j2
+    mode: u=rw,g=,o=
+    backup: true
+  no_log: true
