@@ -10,34 +10,46 @@ Target hosts defined in `ansible/inventory/hosts`:
 - `gate.xvx.cz` (ASUS RT-AX53U) -- currently active
 - `gate-bracha.xvx.cz` (ZyXEL NBG6617) -- currently commented out
 
-## Build / Run / Lint Commands
+## Task Runner
+
+This repo uses [mise](https://mise.jdx.dev/) as the task runner.
+`mise.toml` defines tools (Ansible, fnox, pipx) and tasks:
 
 ```bash
-# Run the full playbook
-cd ansible && ansible-playbook --diff main.yml -i inventory/hosts
+# Run Ansible for a specific host
+mise run run-ansible:gate-xvx-cz
+mise run run-ansible:gate-bracha-xvx-cz
 
-# Install Ansible Galaxy dependencies
-ansible-galaxy install -r ansible/requirements.yml
+# Build custom OpenWrt firmware
+mise run build-firmware:gate-xvx-cz
+mise run build-firmware:gate-bracha-xvx-cz
+```
 
-# Lint Ansible playbooks
+## Secrets
+
+Secrets are fetched from AWS Parameter Store via
+[fnox](https://github.com/jdx/fnox) (see `fnox.toml`). The
+`mise.toml` `[env]` section loads them automatically. Ansible
+tasks access secrets via `lookup('env', 'VAR_NAME')` with
+`no_log: true`.
+
+## Lint Commands
+
+```bash
 ansible-lint ansible/
-
-# Lint Markdown
 rumdl ./*.md
-
-# Check links
 lychee --config lychee.toml .
-
-# Lint GitHub Actions workflows
 actionlint
-
-# Validate JSON files
 jsonlint --comments .github/renovate.json5
 ```
 
 There is no test suite. This is an infrastructure-as-code repository.
 CI runs MegaLinter (`.mega-linter.yml`) which orchestrates all
 linting. Validate changes locally with the tools listed above.
+
+Pre-commit hooks are configured (`.pre-commit-config.yaml`); install
+with `pre-commit install && pre-commit install --hook-type commit-msg`.
+Direct commits to `main`/`master` are blocked by pre-commit.
 
 ## Ansible Code Style
 
@@ -73,7 +85,8 @@ linting. Validate changes locally with the tools listed above.
 
 ### Ansible-lint Exceptions
 
-Configured in `ansible/.ansible-lint.yml`:
+Configured in `ansible/.ansible-lint.yml` (MegaLinter references it
+as `ansible/.ansible-lint`):
 
 - `package-latest` -- allowed
 - `yaml[comments]` -- allowed

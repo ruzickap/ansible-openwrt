@@ -13,8 +13,6 @@ interfaces:
   - phy1-ap0
   - wan@eth0
 
-luci_statistics_collectd_processes_processes: "collectd dnsmasq dropbear hostapd nlbwmon ntpd uhttpd vnstatd wpa_supplicant"
-
 luci_statistics_collectd_tcpconns_localports: "22 443"
 
 # Mailtrap API credentials
@@ -40,7 +38,6 @@ openwrt_packages:
   - collectd-mod-entropy
   - collectd-mod-ipstatistics
   - collectd-mod-ping
-  - collectd-mod-processes
   - collectd-mod-tcpconns
   - collectd-mod-uptime
   - htop
