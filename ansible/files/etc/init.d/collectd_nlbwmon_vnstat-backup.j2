@@ -22,9 +22,9 @@ NLBWMON_DIR_BASENAME="$(basename "${NLBWMON_DIR}")"
 
 backup_database() {
   logger -t "${LOGGER_TAG}" -p info "stopping collectd nlbwmon vnstat services"
-  /etc/init.d/collectd stop 2>/dev/null
-  /etc/init.d/nlbwmon stop 2>/dev/null
-  /etc/init.d/vnstat stop 2>/dev/null
+  /etc/init.d/collectd stop
+  /etc/init.d/nlbwmon stop
+  /etc/init.d/vnstat stop
 
   echo -n "$(date) - Backup:" >> "${BACKUP_DIR}/log"
 
@@ -58,16 +58,16 @@ backup_database() {
   echo >> "${BACKUP_DIR}/log"
 
   logger -t "${LOGGER_TAG}" -p info "starting collectd nlbwmon vnstat services"
-  /etc/init.d/collectd start 2>/dev/null
-  /etc/init.d/nlbwmon start 2>/dev/null
-  /etc/init.d/vnstat start 2>/dev/null
+  /etc/init.d/collectd start
+  /etc/init.d/nlbwmon start
+  /etc/init.d/vnstat start
 }
 
 restore_database() {
   logger -t "${LOGGER_TAG}" -p info "stopping collectd nlbwmon vnstat services"
-  /etc/init.d/collectd stop 2>/dev/null
-  /etc/init.d/nlbwmon stop 2>/dev/null
-  /etc/init.d/vnstat stop 2>/dev/null
+  /etc/init.d/collectd stop
+  /etc/init.d/nlbwmon stop
+  /etc/init.d/vnstat stop
 
   echo -n "$(date) - Restore:" >> "${BACKUP_DIR}/log"
 
@@ -104,9 +104,9 @@ restore_database() {
   echo >> "${BACKUP_DIR}/log"
 
   logger -t "${LOGGER_TAG}" -p info "starting collectd nlbwmon vnstat services"
-  /etc/init.d/collectd start 2>/dev/null
-  /etc/init.d/nlbwmon start 2>/dev/null
-  /etc/init.d/vnstat start 2>/dev/null
+  /etc/init.d/collectd start
+  /etc/init.d/nlbwmon start
+  /etc/init.d/vnstat start
 }
 
 # "reloaded" is a workaround to force the service to restore the data from the backup called when running on freshly installed router
