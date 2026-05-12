@@ -3,10 +3,11 @@
 # Based on: https://openwrt.org/docs/guide-user/services/network_monitoring/vnstat
 
 EXTRA_COMMANDS="backup restore"
-EXTRA_HELP=<<EOF
+EXTRA_HELP=$(cat <<EOF
   backup  Backup collectd nlbwmon vnstat databases
   restore Restore collectd nlbwmon vnstat databases
 EOF
+)
 
 START=55
 STOP=15
@@ -66,14 +67,14 @@ stop_services() {
 backup_database() {
   stop_services
 
-  echo -n "$(date) - Backup:" >> "${BACKUP_DIR}/log"
+  printf '%s' "$(date) - Backup:" >> "${BACKUP_DIR}/log"
 
   if [ ! -d "${COLLECTD_DIR}" ]; then
     echo >> "${BACKUP_DIR}/log"
     logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${COLLECTD_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
   else
     logger -t "${LOGGER_TAG}" -p info "backing up collectd database"
-    echo -n " collectd" >> "${BACKUP_DIR}/log"
+    printf '%s' " collectd" >> "${BACKUP_DIR}/log"
     rsync -a --delete "${COLLECTD_DIR}" "${BACKUP_DIR}/"
   fi
 
@@ -82,7 +83,7 @@ backup_database() {
     logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${NLBWMON_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
   else
     logger -t "${LOGGER_TAG}" -p info "backing up nlbwmon database"
-    echo -n " nlbwmon" >> "${BACKUP_DIR}/log"
+    printf '%s' " nlbwmon" >> "${BACKUP_DIR}/log"
     rsync -a --delete "${NLBWMON_DIR}" "${BACKUP_DIR}/"
   fi
 
@@ -91,7 +92,7 @@ backup_database() {
     logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${VNSTAT_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
   else
     logger -t "${LOGGER_TAG}" -p info "backing up vnstat database"
-    echo -n " vnstat" >> "${BACKUP_DIR}/log"
+    printf '%s' " vnstat" >> "${BACKUP_DIR}/log"
     rsync -a --delete "${VNSTAT_DIR}" "${BACKUP_DIR}/"
   fi
 
@@ -106,14 +107,14 @@ backup_database() {
 restore_database() {
   stop_services
 
-  echo -n "$(date) - Restore:" >> "${BACKUP_DIR}/log"
+  printf '%s' "$(date) - Restore:" >> "${BACKUP_DIR}/log"
 
   if [ ! -d "${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}" ]; then
     echo >> "${BACKUP_DIR}/log"
     logger -s -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
   else
     logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}"
-    echo -n " collectd" >> "${BACKUP_DIR}/log"
+    printf '%s' " collectd" >> "${BACKUP_DIR}/log"
     [ ! -d "${COLLECTD_DIR}" ] && mkdir "${COLLECTD_DIR}"
     rsync -a --delete "${BACKUP_DIR}/${COLLECTD_DIR_BASENAME}/" "${COLLECTD_DIR}/"
   fi
@@ -123,7 +124,7 @@ restore_database() {
     logger -s -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
   else
     logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}"
-    echo -n " nlbwmon" >> "${BACKUP_DIR}/log"
+    printf '%s' " nlbwmon" >> "${BACKUP_DIR}/log"
     [ ! -d "${NLBWMON_DIR}" ] && mkdir "${NLBWMON_DIR}"
     rsync -a --delete "${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}/" "${NLBWMON_DIR}/"
   fi
@@ -133,7 +134,7 @@ restore_database() {
     logger -s -t "${LOGGER_TAG}" -p err "cannot restore, backup file ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
   else
     logger -t "${LOGGER_TAG}" -p info "restoring database from ${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}"
-    echo -n " vnstat" >> "${BACKUP_DIR}/log"
+    printf '%s' " vnstat" >> "${BACKUP_DIR}/log"
     [ ! -d "${VNSTAT_DIR}" ] && mkdir "${VNSTAT_DIR}"
     rsync -a --delete "${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}/" "${VNSTAT_DIR}/"
   fi
