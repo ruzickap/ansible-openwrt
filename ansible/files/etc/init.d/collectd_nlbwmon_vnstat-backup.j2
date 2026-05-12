@@ -92,7 +92,7 @@ backup_database() {
 
   echo >> "${BACKUP_DIR}/log"
 
-  if [ "$1" = "backup" ]; then
+  if [ "$1" != "stop" ]; then
     restart_services
   fi
   trap - EXIT HUP INT TERM
@@ -149,7 +149,7 @@ start() {
 }
 
 stop() {
-  backup_database
+  backup_database stop
 }
 
 backup() {
