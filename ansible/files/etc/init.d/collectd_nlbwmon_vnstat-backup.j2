@@ -57,10 +57,12 @@ backup_database() {
 
   echo >> "${BACKUP_DIR}/log"
 
-  logger -t "${LOGGER_TAG}" -p info "starting collectd nlbwmon vnstat services"
-  /etc/init.d/collectd start
-  /etc/init.d/nlbwmon start
-  /etc/init.d/vnstat start
+  if [ "$1" = "backup" ]; then
+    logger -t "${LOGGER_TAG}" -p info "starting collectd nlbwmon vnstat services"
+    /etc/init.d/collectd start
+    /etc/init.d/nlbwmon start
+    /etc/init.d/vnstat start
+  fi
 }
 
 restore_database() {
