@@ -50,12 +50,13 @@ stop_services() {
   is_service_running nlbwmon && NLBWMON_WAS_RUNNING=1
   is_service_running vnstat && VNSTAT_WAS_RUNNING=1
 
+  SERVICES_STOPPED=1
+  trap cleanup EXIT HUP INT TERM
+
   logger -t "${LOGGER_TAG}" -p info "stopping collectd nlbwmon vnstat services"
   /etc/init.d/collectd stop
   /etc/init.d/nlbwmon stop
   /etc/init.d/vnstat stop
-  SERVICES_STOPPED=1
-  trap cleanup EXIT HUP INT TERM
 }
 
 backup_database() {
