@@ -31,10 +31,14 @@ is_service_running() {
 
 restart_services() {
   if [ "${SERVICES_STOPPED}" -eq 1 ]; then
-    logger -t "${LOGGER_TAG}" -p info "restarting previously running services"
-    [ "${COLLECTD_WAS_RUNNING}" -eq 1 ] && /etc/init.d/collectd start
-    [ "${NLBWMON_WAS_RUNNING}" -eq 1 ] && /etc/init.d/nlbwmon start
-    [ "${VNSTAT_WAS_RUNNING}" -eq 1 ] && /etc/init.d/vnstat start
+    if [ "${COLLECTD_WAS_RUNNING}" -eq 1 ] || [ "${NLBWMON_WAS_RUNNING}" -eq 1 ] || [ "${VNSTAT_WAS_RUNNING}" -eq 1 ]; then
+      logger -t "${LOGGER_TAG}" -p info "restarting previously running services"
+      [ "${COLLECTD_WAS_RUNNING}" -eq 1 ] && /etc/init.d/collectd start
+      [ "${NLBWMON_WAS_RUNNING}" -eq 1 ] && /etc/init.d/nlbwmon start
+      [ "${VNSTAT_WAS_RUNNING}" -eq 1 ] && /etc/init.d/vnstat start
+    else
+      logger -t "${LOGGER_TAG}" -p info "no services were running before, skipping restart"
+    fi
     SERVICES_STOPPED=0
   fi
 }
