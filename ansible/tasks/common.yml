@@ -272,5 +272,4 @@
 
 - name: Restore data using collectd_nlbwmon_vnstat-backup
   ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
-  args:
-    creates: /tmp/rrd/{{ inventory_hostname_short }}/cpu-0
+  changed_when: false
