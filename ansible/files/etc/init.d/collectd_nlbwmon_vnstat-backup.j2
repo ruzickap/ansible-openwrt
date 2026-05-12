@@ -20,11 +20,46 @@ COLLECTD_DIR_BASENAME="$(basename "${COLLECTD_DIR}")"
 NLBWMON_DIR="$(uci get nlbwmon.@nlbwmon[0].database_directory)"
 NLBWMON_DIR_BASENAME="$(basename "${NLBWMON_DIR}")"
 
-backup_database() {
+SERVICES_STOPPED=0
+COLLECTD_WAS_RUNNING=0
+NLBWMON_WAS_RUNNING=0
+VNSTAT_WAS_RUNNING=0
+
+is_service_running() {
+  /etc/init.d/"$1" running 2> /dev/null
+}
+
+restart_services() {
+  if [ "${SERVICES_STOPPED}" -eq 1 ]; then
+    logger -t "${LOGGER_TAG}" -p info "restarting previously running services"
+    [ "${COLLECTD_WAS_RUNNING}" -eq 1 ] && /etc/init.d/collectd start
+    [ "${NLBWMON_WAS_RUNNING}" -eq 1 ] && /etc/init.d/nlbwmon start
+    [ "${VNSTAT_WAS_RUNNING}" -eq 1 ] && /etc/init.d/vnstat start
+    SERVICES_STOPPED=0
+  fi
+}
+
+cleanup() {
+  logger -t "${LOGGER_TAG}" -p warning "interrupted, ensuring previously running services are restarted"
+  restart_services
+  trap - EXIT HUP INT TERM
+}
+
+stop_services() {
+  is_service_running collectd && COLLECTD_WAS_RUNNING=1
+  is_service_running nlbwmon && NLBWMON_WAS_RUNNING=1
+  is_service_running vnstat && VNSTAT_WAS_RUNNING=1
+
   logger -t "${LOGGER_TAG}" -p info "stopping collectd nlbwmon vnstat services"
   /etc/init.d/collectd stop
   /etc/init.d/nlbwmon stop
   /etc/init.d/vnstat stop
+  SERVICES_STOPPED=1
+  trap cleanup EXIT HUP INT TERM
+}
+
+backup_database() {
+  stop_services
 
   echo -n "$(date) - Backup:" >> "${BACKUP_DIR}/log"
 
@@ -58,18 +93,13 @@ backup_database() {
   echo >> "${BACKUP_DIR}/log"
 
   if [ "$1" = "backup" ]; then
-    logger -t "${LOGGER_TAG}" -p info "starting collectd nlbwmon vnstat services"
-    /etc/init.d/collectd start
-    /etc/init.d/nlbwmon start
-    /etc/init.d/vnstat start
+    restart_services
   fi
+  trap - EXIT HUP INT TERM
 }
 
 restore_database() {
-  logger -t "${LOGGER_TAG}" -p info "stopping collectd nlbwmon vnstat services"
-  /etc/init.d/collectd stop
-  /etc/init.d/nlbwmon stop
-  /etc/init.d/vnstat stop
+  stop_services
 
   echo -n "$(date) - Restore:" >> "${BACKUP_DIR}/log"
 
@@ -105,10 +135,8 @@ restore_database() {
 
   echo >> "${BACKUP_DIR}/log"
 
-  logger -t "${LOGGER_TAG}" -p info "starting collectd nlbwmon vnstat services"
-  /etc/init.d/collectd start
-  /etc/init.d/nlbwmon start
-  /etc/init.d/vnstat start
+  restart_services
+  trap - EXIT HUP INT TERM
 }
 
 # "reloaded" is a workaround to force the service to restore the data from the backup called when running on freshly installed router
