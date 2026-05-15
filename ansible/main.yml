@@ -18,7 +18,6 @@
     - name: Install Python
       ansible.builtin.raw: test -e /usr/bin/python3 || ( apk add python3-light python3-decimal python3-idna python3-logging )
       changed_when: false
-      when: not (build_firmware | default(false) | bool)
 
     - name: Create initial backup of /etc (first run only, skipped if /root/etc-backup.tar.gz exists)
       ansible.builtin.command:
