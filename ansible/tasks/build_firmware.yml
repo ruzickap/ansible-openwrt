@@ -142,11 +142,3 @@
     timeout: 600
   delegate_to: localhost
   when: not (build_firmware_only | default(false) | bool)
-# TODO: Uncomment if SSH connections fail after reboot despite port being open
-# - name: Wait for SSH to be fully ready
-#   ansible.builtin.raw: echo ready
-#   register: ssh_ready
-#   retries: 30
-#   delay: 10
-#   until: ssh_ready is not failed
-#   changed_when: false
