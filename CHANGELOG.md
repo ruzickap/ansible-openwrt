@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.1.0...v3.2.0) (2026-05-15)
+
+
+### Features
+
+* convert firmware build script to Ansible tasks ([#120](https://github.com/ruzickap/ansible-openwrt/issues/120)) ([52ee14a](https://github.com/ruzickap/ansible-openwrt/commit/52ee14ac8840abb399ad252e52d70ea03f386022))
+
+
+### Bug Fixes
+
+* harden backup/restore script with trap cleanup and service state preservation ([#118](https://github.com/ruzickap/ansible-openwrt/issues/118)) ([3647549](https://github.com/ruzickap/ansible-openwrt/commit/36475494c34168536847b342d84c2236eb2d0dfb))
+
 ## [3.1.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.0.0...v3.1.0) (2026-05-10)
 
 
