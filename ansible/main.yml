@@ -4,11 +4,21 @@
   force_handlers: true
   vars:
     network_prefix: "{{ network_ip_subnet.split('/')[0].split('.')[:3] | join('.') }}"
+    sysupgrade_api_url: https://sysupgrade.openwrt.org/api/v1
 
   tasks:
+    - name: Build custom OpenWrt firmware
+      ansible.builtin.include_tasks: tasks/build_firmware.yml
+      when: build_firmware | default(false) | bool
+
+    - name: End play after firmware build (build-only mode)
+      ansible.builtin.meta: end_play
+      when: build_firmware_only | default(false) | bool
+
     - name: Install Python
       ansible.builtin.raw: test -e /usr/bin/python3 || ( apk add python3-light python3-decimal python3-idna python3-logging )
       changed_when: false
+      when: not (build_firmware | default(false) | bool)
 
     - name: Create initial backup of /etc (first run only, skipped if /root/etc-backup.tar.gz exists)
       ansible.builtin.command:

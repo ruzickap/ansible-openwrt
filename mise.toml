@@ -10,12 +10,24 @@ fnox-env = "https://github.com/jdx/mise-env-fnox"
 _.fnox-env = { tools = true }
 
 [tasks."build-firmware:gate-xvx-cz"]
-description = "Build custom OpenWrt firmware for ASUS RT-AX53U (gate.xvx.cz)"
-run = 'scripts/build-firmware.sh "ramips/mt7621" "asus_rt-ax53u" "gate.xvx.cz"'
+description = "Build OpenWrt firmware for gate.xvx.cz (ASUS RT-AX53U) and display results"
+dir = "ansible"
+run = 'ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz -e build_firmware=true -e build_firmware_only=true 2>&1 | tee /tmp/build-firmware-gate-xvx.cz.log'
 
 [tasks."build-firmware:gate-bracha-xvx-cz"]
-description = "Build custom OpenWrt firmware for ZyXEL NBG6617 (gate-bracha.xvx.cz)"
-run = 'scripts/build-firmware.sh "ipq40xx/generic" "zyxel_nbg6617" "gate-bracha.xvx.cz"'
+description = "Build OpenWrt firmware for gate-bracha.xvx.cz (ZyXEL NBG6617) and display results"
+dir = "ansible"
+run = 'ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz -e build_firmware=true -e build_firmware_only=true 2>&1 | tee /tmp/build-firmware-gate-bracha.xvx.cz.log'
+
+[tasks."run-ansible-firmware:gate-xvx-cz"]
+description = "Build firmware, flash, and configure gate.xvx.cz (ASUS RT-AX53U) using Ansible"
+dir = "ansible"
+run = 'ansible-playbook --diff main.yml -i inventory/hosts --limit gate.xvx.cz -e build_firmware=true 2>&1 | tee /tmp/build-firmware-gate-xvx.cz.log'
+
+[tasks."run-ansible-firmware:gate-bracha-xvx-cz"]
+description = "Build firmware, flash, and configure gate-bracha.xvx.cz (ZyXEL NBG6617) using Ansible"
+dir = "ansible"
+run = 'ansible-playbook --diff main.yml -i inventory/hosts --limit gate-bracha.xvx.cz -e build_firmware=true 2>&1 | tee /tmp/build-firmware-gate-bracha.xvx.cz.log'
 
 [tasks."run-ansible:gate-xvx-cz"]
 description = "Run Ansible playbook for gate.xvx.cz"

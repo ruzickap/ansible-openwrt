@@ -1,0 +1,152 @@
+- name: Generate random root password
+  ansible.builtin.set_fact:
+    firmware_root_password: "{{ lookup('password', '/dev/null chars=ascii_letters,digits length=10') }}"
+
+- name: Display root password
+  ansible.builtin.debug:
+    msg: "Root password: {{ firmware_root_password }}"
+
+- name: Build uci-defaults script
+  ansible.builtin.set_fact:
+    uci_defaults: |
+      exec > /root/uci-defaults.log 2>&1
+      set -x
+
+      # Set hostname
+      sed -i "s/option hostname .*/option hostname '{{ inventory_hostname.split('.')[0] }}'/" /etc/config/system
+
+      # Configure WiFi
+      uci delete wireless.default_radio1.disabled
+      uci set wireless.default_radio1.ssid='{{ wifi_ssid }} 5 GHz'
+      uci set wireless.default_radio1.encryption='sae-mixed'
+      uci set wireless.default_radio1.key='{{ wifi_password }}'
+      uci commit wireless
+
+      # Set random root password
+      printf '%s\n%s\n' "{{ firmware_root_password }}" "{{ firmware_root_password }}" | passwd root
+
+      # Allow SSH on WAN
+      cat >> /etc/config/firewall << 'FIREWALL_EOF'
+
+      config rule
+      	option name 'Allow-SSH-WAN'
+      	option src 'wan'
+      	option dest_port '22'
+      	option proto 'tcp'
+      	option target 'ACCEPT'
+      FIREWALL_EOF
+
+      # Add GitHub SSH public key
+      mkdir -p /etc/dropbear
+      echo '{{ ssh_authorized_key }}' > /etc/dropbear/authorized_keys
+      chmod 600 /etc/dropbear/authorized_keys
+  no_log: true
+
+- name: Get latest stable OpenWrt version
+  ansible.builtin.uri:
+    url: "{{ sysupgrade_api_url }}/latest"
+    return_content: true
+  register: latest_response
+  delegate_to: localhost
+
+- name: Determine latest stable version
+  ansible.builtin.set_fact:
+    openwrt_version: >-
+      {{ latest_response.json.latest
+         | reject('match', '.*-rc[0-9]+$')
+         | select('match', '^[0-9]+\.[0-9]+\.[0-9]+$')
+         | community.general.version_sort
+         | last }}
+
+- name: Display latest stable OpenWrt version
+  ansible.builtin.debug:
+    msg: "Latest stable OpenWrt version: {{ openwrt_version }}"
+
+- name: Submit build request to sysupgrade API
+  ansible.builtin.uri:
+    url: "{{ sysupgrade_api_url }}/build"
+    method: POST
+    body_format: json
+    body:
+      target: "{{ openwrt_target }}"
+      profile: "{{ openwrt_profile }}"
+      version: "{{ openwrt_version }}"
+      packages: "{{ openwrt_packages }}"
+      diff_packages: false
+      defaults: "{{ uci_defaults }}"
+    status_code: [200, 202]
+    return_content: true
+  register: build_response
+  no_log: true
+  delegate_to: localhost
+
+- name: Wait for firmware build to complete
+  ansible.builtin.uri:
+    url: "{{ sysupgrade_api_url }}/build/{{ build_response.json.request_hash }}"
+    return_content: true
+    status_code: [200, 202, 500]
+  register: build_status
+  until: build_status.status != 202
+  retries: 60
+  delay: 10
+  delegate_to: localhost
+
+- name: Fail if firmware build failed
+  ansible.builtin.fail:
+    msg: |
+      ❌ Firmware build failed!
+      📋 Detail: {{ build_status.json.detail | default('Unknown error') }}
+      🔢 Status: {{ build_status.status }}
+      🔑 Request hash: {{ build_response.json.request_hash }}
+      🔗 Build status URL: {{ sysupgrade_api_url }}/build/{{ build_response.json.request_hash }}
+      📝 Stderr: {{ build_status.json.stderr | default('N/A') }}
+  when: build_status.status != 200
+
+- name: Extract firmware image URL
+  ansible.builtin.set_fact:
+    firmware_image_name: "{{ build_status.json.images | selectattr('type', 'equalto', 'sysupgrade') | map(attribute='name') | first }}"
+    firmware_bin_dir: "{{ build_status.json.bin_dir }}"
+
+- name: Set firmware image URL
+  ansible.builtin.set_fact:
+    firmware_image_url: "https://sysupgrade.openwrt.org/store/{{ firmware_bin_dir }}/{{ firmware_image_name }}"
+
+- name: Display firmware information
+  ansible.builtin.debug:
+    msg:
+      - "Build status: {{ sysupgrade_api_url }}/build/{{ build_response.json.request_hash }}"
+      - "Firmware URL: {{ firmware_image_url }}"
+
+- name: Run sysupgrade on the device
+  ansible.builtin.raw: sysupgrade -v -n -p "{{ firmware_image_url }}"
+  failed_when: false
+  ignore_unreachable: true
+  when: not (build_firmware_only | default(false) | bool)
+
+- name: Wait for device to go offline
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ ansible_port | default(22) }}"
+    state: stopped
+    delay: 10
+    timeout: 300
+  delegate_to: localhost
+  when: not (build_firmware_only | default(false) | bool)
+
+- name: Wait for device to come back online after sysupgrade
+  ansible.builtin.wait_for:
+    host: "{{ ansible_host }}"
+    port: "{{ ansible_port | default(22) }}"
+    state: started
+    delay: 30
+    timeout: 600
+  delegate_to: localhost
+  when: not (build_firmware_only | default(false) | bool)
+# TODO: Uncomment if SSH connections fail after reboot despite port being open
+# - name: Wait for SSH to be fully ready
+#   ansible.builtin.raw: echo ready
+#   register: ssh_ready
+#   retries: 30
+#   delay: 10
+#   until: ssh_ready is not failed
+#   changed_when: false
