@@ -29,6 +29,7 @@ exclude = [
 # Exclude these filesystem paths from link checking
 exclude_path = [
   "CHANGELOG.md",
+  "ansible/tasks/build_firmware.yml",
   "package-lock.json",
 ]
 

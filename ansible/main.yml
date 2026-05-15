@@ -4,7 +4,6 @@
   force_handlers: true
   vars:
     network_prefix: "{{ network_ip_subnet.split('/')[0].split('.')[:3] | join('.') }}"
-    sysupgrade_api_url: https://sysupgrade.openwrt.org/api/v1
 
   tasks:
     - name: Build custom OpenWrt firmware
