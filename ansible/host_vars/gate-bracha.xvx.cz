@@ -63,6 +63,10 @@ openwrt_packages:
   - telnet-bsd
   # keep-sorted end
 
+openwrt_profile: zyxel_nbg6617
+
+openwrt_target: ipq40xx/generic
+
 root_password: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_ROOT_PASSWORD') }}"
 
 usb_disk_device: sda

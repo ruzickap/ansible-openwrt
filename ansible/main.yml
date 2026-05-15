@@ -6,6 +6,14 @@
     network_prefix: "{{ network_ip_subnet.split('/')[0].split('.')[:3] | join('.') }}"
 
   tasks:
+    - name: Build custom OpenWrt firmware
+      ansible.builtin.include_tasks: tasks/build_firmware.yml
+      when: build_firmware | default(false) | bool
+
+    - name: End play after firmware build (build-only mode)
+      ansible.builtin.meta: end_play
+      when: build_firmware_only | default(false) | bool
+
     - name: Install Python
       ansible.builtin.raw: test -e /usr/bin/python3 || ( apk add python3-light python3-decimal python3-idna python3-logging )
       changed_when: false

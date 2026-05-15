@@ -86,6 +86,10 @@ openwrt_packages:
   - transmission-web
   # keep-sorted end
 
+openwrt_profile: asus_rt-ax53u
+
+openwrt_target: ramips/mt7621
+
 root_password: "{{ lookup('env', 'GATE_XVX_CZ_ROOT_PASSWORD') }}"
 
 transmission_blocklist_url: https://raw.githubusercontent.com/Naunter/BT_BlockLists/master/bt_blocklists
