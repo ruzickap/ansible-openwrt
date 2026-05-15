@@ -15,7 +15,13 @@ Build custom firmware using the OpenWrt Sysupgrade API:
 mise run build-firmware:gate-xvx-cz
 ```
 
-Run Ansible playbook:
+Build firmware, flash, and configure using Ansible:
+
+```bash
+mise run run-ansible-firmware:gate-xvx-cz
+```
+
+Run Ansible playbook (without firmware build):
 
 ```bash
 mise run run-ansible:gate-xvx-cz
@@ -31,42 +37,14 @@ Build custom firmware using the OpenWrt Sysupgrade API:
 mise run build-firmware:gate-bracha-xvx-cz
 ```
 
-Run Ansible playbook:
+Build firmware, flash, and configure using Ansible:
+
+```bash
+mise run run-ansible-firmware:gate-bracha-xvx-cz
+```
+
+Run Ansible playbook (without firmware build):
 
 ```bash
 mise run run-ansible:gate-bracha-xvx-cz
-```
-
----
-
-## Notes
-
-### Flash router and allow SSH access to the router form the WAN
-
-```bash
-# Set root password
-passwd
-
-# Enable SSH access from the WAN
-wget https://github.com/ruzickap.keys -O /etc/dropbear/authorized_keys
-
-cat >> /etc/config/firewall << 'EOF'
-
-config rule
-	option name 'Allow-SSH'
-	option src 'wan'
-	option target 'ACCEPT'
-	option proto 'tcp'
-	option dest_port '22'
-
-config redirect
-	option name 'Allow-SSH-22222'
-	option src 'wan'
-	option proto 'tcp'
-	option src_dport '22222'
-	option dest 'lan'
-	option dest_port '22'
-EOF
-
-/etc/init.d/firewall restart
 ```
