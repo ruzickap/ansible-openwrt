@@ -24,8 +24,6 @@ exclude = [
   '%7B.*%7D',
   # Ignore URLs with dollar signs - shell/environment variables
   '\$',
-  # OpenWrt Sysupgrade API endpoints (not browsable)
-  'https://sysupgrade\.openwrt\.org',
 ]
 
 # Exclude these filesystem paths from link checking
