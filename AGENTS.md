@@ -133,7 +133,6 @@ as `ansible/.ansible-lint`):
 
 - **Checkov**: Skips `CKV_GHA_7` (workflow_dispatch inputs)
 - **DevSkim**: Ignores DS162092, DS137138; excludes `CHANGELOG.md`
-- **KICS**: Fails only on HIGH severity (`--fail-on high`)
 - **Trivy**: HIGH and CRITICAL only, ignores unfixed vulnerabilities
 - Never commit plaintext secrets; use environment variable lookups
 
