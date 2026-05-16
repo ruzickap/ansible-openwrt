@@ -64,9 +64,6 @@ REPOSITORY_CHECKOV_ARGUMENTS: --quiet
 #   - DS137138: "Insecure URL" (for HTTP links that are intentional)
 REPOSITORY_DEVSKIM_ARGUMENTS: --ignore-globs CHANGELOG.md --ignore-rule-ids DS162092,DS137138
 
-# KICS (security scanner) - only fail on high severity issues
-REPOSITORY_KICS_ARGUMENTS: --fail-on high
-
 # Trivy (vulnerability scanner) - only check HIGH and CRITICAL severity
 REPOSITORY_TRIVY_ARGUMENTS: --severity HIGH,CRITICAL --ignore-unfixed
 
