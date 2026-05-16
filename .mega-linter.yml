@@ -6,6 +6,10 @@
 # and in individual linters documentation
 
 # keep-sorted start newline_separated=yes
+# Allow zizmor (GitHub Actions security scanner) to access GitHub token for API
+ACTION_ZIZMOR_UNSECURED_ENV_VARIABLES:
+  - GITHUB_TOKEN
+
 ANSIBLE_ANSIBLE_LINT_CONFIG_FILE: ansible/.ansible-lint
 
 ANSIBLE_ANSIBLE_LINT_PRE_COMMANDS:
@@ -25,6 +29,7 @@ BASH_SHFMT_ARGUMENTS: --case-indent --indent 2 --space-redirects
 DISABLE_LINTERS:
   - MARKDOWN_MARKDOWNLINT # Using rumdl instead (faster Rust-based alternative)
   - MARKDOWN_MARKDOWN_LINK_CHECK # Using lychee instead for link checking (more configurable)
+  - REPOSITORY_OSV_SCANNER # No package sources in this Ansible repository
   - SPELL_CSPELL # Spell checking disabled - prone to false positives
   - TERRAFORM_TERRASCAN # Hard to configure - no clear documentation of the config file format
 
