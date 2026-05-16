@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.2.1](https://github.com/ruzickap/ansible-openwrt/compare/v3.2.0...v3.2.1) (2026-05-16)
+
+
+### Bug Fixes
+
+* add banip runtime options to template for reboot idempotency ([#122](https://github.com/ruzickap/ansible-openwrt/issues/122)) ([0ffe510](https://github.com/ruzickap/ansible-openwrt/commit/0ffe510c13f52a61ec17de0bad8e3b708d0efd43))
+
 ## [3.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.1.0...v3.2.0) (2026-05-15)
 
 
