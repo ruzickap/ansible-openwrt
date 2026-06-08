@@ -1,177 +1,93 @@
-# AI Agent Guidelines
+# AGENTS.md
 
-## Project Overview
+Ansible playbooks that build custom OpenWrt firmware and configure home Wi-Fi
+routers (`gate.xvx.cz` = ASUS RT-AX53U, `gate-bracha.xvx.cz` = ZyXEL NBG6617).
+There is no application code here; the "program" is the Ansible play in
+`ansible/`.
 
-Ansible playbooks for configuring OpenWrt devices (Wi-Fi routers).
-Repository: `ruzickap/ansible-openwrt`. License: Apache 2.0.
+## Toolchain & setup
 
-Target hosts defined in `ansible/inventory/hosts`:
+- Tooling is pinned via `mise` (`mise.toml`). Ansible, `fnox`, and `pipx` are
+  installed by mise, not `pip` directly. Run `mise install` first.
+- Secrets are injected as env vars by `fnox` via the `mise-env-fnox` plugin
+  (`[env]._.fnox-env` in `mise.toml`). `fnox.toml` maps each
+  `GATE_*` env var to an AWS Parameter Store path (profile `my-aws`,
+  region `eu-central-1`). Running real plays requires AWS access; missing
+  secrets error out (`if_missing = "error"`).
+- `host_vars/*` read those secrets with `lookup('env', 'GATE_...')`. The env
+  var name encodes the host, e.g. `GATE_XVX_CZ_WIFI_PASSWORD`.
 
-- `gate.xvx.cz` (ASUS RT-AX53U) -- currently active
-- `gate-bracha.xvx.cz` (ZyXEL NBG6617) -- currently commented out
+## Common commands
 
-## Task Runner
+Run via mise tasks (they `cd` into `ansible/` and tee logs to `/tmp`):
 
-This repo uses [mise](https://mise.jdx.dev/) as the task runner.
-`mise.toml` defines tools (Ansible, fnox, pipx) and tasks:
+- `mise run build-firmware:gate-xvx-cz` — build firmware only (no flashing).
+- `mise run run-ansible-firmware:gate-xvx-cz` — build, flash, then configure.
+- `mise run run-ansible:gate-xvx-cz` — configure only (skip firmware build).
+- Replace `gate-xvx-cz` with `gate-bracha-xvx-cz` for the other device.
 
-```bash
-# Run Ansible for a specific host
-mise run run-ansible:gate-xvx-cz
-mise run run-ansible:gate-bracha-xvx-cz
+Raw equivalent (from `ansible/`):
 
-# Build custom OpenWrt firmware
-mise run build-firmware:gate-xvx-cz
-mise run build-firmware:gate-bracha-xvx-cz
+```text
+ansible-playbook --diff main.yml -i inventory/hosts --limit <host> \
+  [-e build_firmware=true] [-e build_firmware_only=true]
 ```
 
-## Secrets
+The firmware build (`tasks/build_firmware.yml`) is driven by two flags:
+`build_firmware` enables it, `build_firmware_only` builds without flashing.
 
-Secrets are fetched from AWS Parameter Store via
-[fnox](https://github.com/jdx/fnox) (see `fnox.toml`). The
-`mise.toml` `[env]` section loads them automatically. Ansible
-tasks access secrets via `lookup('env', 'VAR_NAME')` with
-`no_log: true`.
+## Execution flow (ansible/main.yml)
 
-## Lint Commands
+1. Optional firmware build via the OpenWrt sysupgrade API
+   (`https://sysupgrade.openwrt.org`); the latest stable version is
+   auto-detected (release candidates filtered out). Build runs
+   `delegate_to: localhost`.
+2. `tasks/common.yml` — shared config applied to every host.
+3. `tasks/tasks_{{ inventory_hostname }}.yml` — per-host config, included by
+   hostname. Add a matching `tasks_<host>.yml` when onboarding a new device.
 
-```bash
-ansible-lint ansible/
-rumdl ./*.md
-lychee --config lychee.toml .
-actionlint
-jsonlint --comments .github/renovate.json5
-```
+`gather_facts: false` and `force_handlers: true` are set intentionally. Devices
+run OpenWrt (Alpine-based, `apk`), so Python is installed via `raw` before any
+module runs.
 
-There is no test suite. This is an infrastructure-as-code repository.
-CI runs MegaLinter (`.mega-linter.yml`) which orchestrates all
-linting. Validate changes locally with the tools listed above.
+## Conventions specific to this repo
 
-Pre-commit hooks are configured (`.pre-commit-config.yaml`); install
-with `pre-commit install && pre-commit install --hook-type commit-msg`.
-Direct commits to `main`/`master` are blocked by pre-commit.
+- Per-host file layout mirrors the device: templates live under
+  `ansible/files/<inventory_hostname>/etc/config/*.j2` and are rendered by
+  `common.yml` / per-host tasks. New config files follow this path pattern.
+- Many vars lists (`openwrt_packages`, `dhcp_hosts`, `interfaces`,
+  `group_vars/all`) and parts of `.mega-linter.yml` / `stale.yml` are wrapped in
+  `# keep-sorted start` / `end` markers — preserve alphabetical order inside
+  them.
+- Tasks touching secrets use `no_log: true`. Keep this on any new task that
+  handles passwords, keys, or SMTP creds.
+- `host_key_checking` is disabled (`ansible/ansible.cfg`) because devices are
+  reflashed and host keys change.
 
-## Ansible Code Style
+## CI & linting (must pass)
 
-- **Always use FQCN** (Fully Qualified Collection Names) for all
-  modules: `ansible.builtin.copy`, `ansible.builtin.command`,
-  `community.general.opkg` -- never bare module names
-- **Indentation**: 2 spaces, no tabs, throughout all YAML files
-- **Variables**: `lowercase_with_underscores` for Ansible variables
-  (e.g., `wifi_password`, `usb_disk_mount_path`)
-- **Secrets**: Stored via environment variable lookups
-  (`lookup('env', 'VAR_NAME')`); use `no_log: true` on tasks that
-  handle sensitive data
-- **Idempotency**: Use `changed_when: false` on commands that do not
-  alter state (queries, reads)
-- **Templates**: Jinja2 files use `.j2` extension; placed under
-  `ansible/files/`
-- **Shared files**: Common templates under `ansible/files/etc/`
-  (e.g., `authorized_keys.j2`, `msmtprc.j2`, `rc.local.j2`)
-- **Host-specific files**: Organized under
-  `ansible/files/<hostname>/etc/...` (and other paths like `usr/`)
-- **Common tasks**: `ansible/tasks/common.yml`, imported by
-  `main.yml` for all hosts
-- **Host-specific tasks**: `ansible/tasks/tasks_<hostname>.yml`,
-  loaded dynamically via `include_tasks`
-- **Host-specific variables**: `ansible/host_vars/<hostname>`
-- **Global variables**: `ansible/group_vars/all`
-- **Handlers**: Defined in `ansible/handlers/main.yml`; use for
-  deferred service actions
-- **Error handling**: Use `block`/`rescue` pattern where failures
-  are expected (e.g., USB disk mounting)
-- **List ordering**: Use `# keep-sorted (start|end)`
-  comment markers around sorted lists (e.g., package lists)
+- MegaLinter (`.mega-linter.yml`) is the umbrella. It runs `ansible-lint`
+  (config `ansible/.ansible-lint.yml`, with `ansible-galaxy install -r
+  ansible/requirements.yml` as a pre-command), plus `checkov`, `trivy`
+  (HIGH/CRITICAL only), `devskim`, and `zizmor`. `markdownlint`, `cspell`, and
+  `osv-scanner` are disabled on purpose.
+- Markdown is linted by `rumdl` (`.rumdl.toml`), not markdownlint. Links by
+  `lychee` (`lychee.toml`), not markdown-link-check.
+- Shell blocks: `shellcheck` (`--exclude=SC2317`) and `shfmt`
+  (`--case-indent --indent 2 --space-redirects`).
+- `ansible-openwrt-test.yml` runs the playbook against a disposable
+  `openwrt/rootfs` Docker container on pushes touching `ansible/**`, using dummy
+  `ci-test-dummy-value` secrets. There is no other automated test suite.
+- After editing any workflow under `.github/workflows/`, validate with
+  `actionlint`. Pin actions to full SHA, use minimal `permissions`.
+- `CHANGELOG.md` is generated by release-please — never edit it by hand; it is
+  excluded from all linters.
 
-### Ansible-lint Exceptions
+## Commits, branches, PRs
 
-Configured in `ansible/.ansible-lint.yml` (MegaLinter references it
-as `ansible/.ansible-lint`):
-
-- `package-latest` -- allowed
-- `yaml[comments]` -- allowed
-- `yaml[document-start]` -- allowed
-- `yaml[line-length]` -- allowed
-
-## Shell Scripts
-
-- **Linting**: Must pass `shellcheck` (SC2317 is excluded globally)
-- **Formatting**: `shfmt --case-indent --indent 2 --space-redirects`
-- **Variables**: Use uppercase with braces: `${MY_VARIABLE}`
-- **Shell code blocks** in Markdown (tagged `bash`, `shell`, or `sh`)
-  are extracted and validated by CI
-
-## Markdown
-
-- Must pass `rumdl` checks (config in `.rumdl.toml`)
-- Wrap lines at 80 characters
-- Use proper heading hierarchy (no skipped levels)
-- Include language identifiers in code fences
-- `CHANGELOG.md` is excluded from linting and link checking
-
-## JSON Files
-
-- Must pass `jsonlint --comments`
-- `.devcontainer/devcontainer.json` is excluded
-
-## Link Checking
-
-- Uses `lychee` (config in `lychee.toml`)
-- Accepts status 200 and 429; caches results
-- Excludes: template variables, shell variables, private IPs
-- Excluded files: `CHANGELOG.md`, `package-lock.json`
-
-## GitHub Actions Workflows
-
-- Validate with `actionlint` after any workflow change
-- Pin all actions to full SHA digests (not tags)
-- Use minimal permissions: `permissions: read-all` at workflow level,
-  scope per job only as needed
-- Use `timeout-minutes` on all jobs
-
-## Security Scanning (CI)
-
-- **Checkov**: Skips `CKV_GHA_7` (workflow_dispatch inputs)
-- **DevSkim**: Ignores DS162092, DS137138; excludes `CHANGELOG.md`
-- **Trivy**: HIGH and CRITICAL only, ignores unfixed vulnerabilities
-- Never commit plaintext secrets; use environment variable lookups
-
-## Version Control
-
-### Commit Messages
-
-Conventional commit format. Subject line rules:
-
-- Format: `<type>: <description>`
-- Types: `feat`, `fix`, `docs`, `chore`, `refactor`, `test`,
-  `style`, `perf`, `ci`, `build`, `revert`
-- Imperative mood, lowercase, no trailing period
-- Maximum 72 characters (subject); 72 characters (body lines)
-- Body: explain what and why, reference issues with
-  `Fixes`/`Closes`/`Resolves`
-
-### Branching
-
-Conventional branch format: `<type>/<description>`
-
-- `feature/` or `feat/`, `bugfix/` or `fix/`, `hotfix/`,
-  `release/`, `chore/`
-- Lowercase, hyphens, no consecutive/leading/trailing hyphens
-- Include issue number when applicable:
-  `feature/issue-123-add-wifi-config`
-
-### Pull Requests
-
-- Always create as **draft** initially
-- Title must follow conventional commit format
-- Include clear description and link related issues
-
-## Quality Checklist
-
-- [ ] All YAML uses 2-space indentation
-- [ ] Ansible modules use FQCN
-- [ ] Secrets use env var lookups with `no_log: true`
-- [ ] Shell scripts pass `shellcheck` and `shfmt`
-- [ ] Markdown wraps at 80 characters and passes `rumdl`
-- [ ] GitHub Actions pinned to SHA with `timeout-minutes`
-- [ ] Commit message follows conventional format
+- Conventional Commits, validated by the `commit-check` action: subject and body
+  lines ≤ 72 chars, imperative lowercase subject, no trailing period.
+- Branches follow Conventional Branch: `feature/`, `bugfix/`, `hotfix/`,
+  `release/`, `chore/` + lowercase-hyphen description.
+- Open PRs as **draft**; title must be a valid Conventional Commit
+  (`semantic-pull-request` action). `CODEOWNERS` applies.
