@@ -19,7 +19,7 @@ defaults:
     shell: bash -euxo pipefail {0}
 
 env:
-  # renovate: datasource=docker depName=openwrt/rootfs
+  # renovate: datasource=docker depName=openwrt/rootfs versioning=regex:^(?<compatibility>x86_64)-(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$
   OPENWRT_VERSION: "x86_64-25.12.2"
 
 jobs:
