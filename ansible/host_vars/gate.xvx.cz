@@ -5,7 +5,7 @@ dhcp_hosts:
   # keep-sorted start
   - ip: "{{ network_prefix }}.2"
     name: raspberrypi-wifi
-    mac: a0:f3:c1:1b:de:a6
+    mac: 90:de:80:3e:93:fc
     # mac: dc:a6:32:0e:bd:14
   - ip: "{{ network_prefix }}.3"
     name: uzg-01-nic
