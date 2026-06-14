@@ -19,8 +19,8 @@ defaults:
     shell: bash -euxo pipefail {0}
 
 env:
-  # renovate: datasource=docker depName=openwrt/rootfs versioning=regex:^(?<compatibility>x86_64)-(?<major>\d+)\.(?<minor>\d+)\.(?<patch>\d+)$
-  OPENWRT_VERSION: "x86_64-25.12.4"
+  # renovate: datasource=docker depName=openwrt/rootfs extractVersion=^x86_64-(?<version>\d+\.\d+\.\d+)$
+  OPENWRT_VERSION: "25.12.4"
 
 jobs:
   gate-xvx-cz:
@@ -39,7 +39,7 @@ jobs:
             --hostname gate \
             -p 2222:22 \
             --entrypoint /bin/sh \
-            "openwrt/rootfs:${OPENWRT_VERSION}" \
+            "openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
             -c "sleep infinity"
 
           # Wait for container to be ready
