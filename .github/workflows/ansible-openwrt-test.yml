@@ -19,7 +19,7 @@ defaults:
     shell: bash -euxo pipefail {0}
 
 env:
-  # renovate: datasource=docker depName=openwrt/rootfs extractVersion=^x86_64-(?<version>\d+\.\d+\.\d+)$
+  # renovate: datasource=github-releases depName=openwrt/openwrt extractVersion=^v(?<version>\d+\.\d+\.\d+)$
   OPENWRT_VERSION: "25.12.4"
 
 jobs:
@@ -39,7 +39,7 @@ jobs:
             --hostname gate \
             -p 2222:22 \
             --entrypoint /bin/sh \
-            "openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
+            "ghcr.io/openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
             -c "sleep infinity"
 
           # Wait for container to be ready
