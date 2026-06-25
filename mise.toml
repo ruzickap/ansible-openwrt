@@ -1,6 +1,6 @@
 [tools]
-ansible = { version = "14.0.0", pipx_args = "--preinstall passlib" }
-fnox = "1.26.0"
+ansible = { version = "14.1.0", pipx_args = "--preinstall passlib" }
+fnox = "1.27.1"
 pipx = "1.14.1"
 
 [plugins]
