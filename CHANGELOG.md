@@ -1,5 +1,20 @@
 # Changelog
 
+## [3.3.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.2.0...v3.3.0) (2026-06-29)
+
+
+### Features
+
+* templatize wifi channel configuration ([#125](https://github.com/ruzickap/ansible-openwrt/issues/125)) ([c5fc7b4](https://github.com/ruzickap/ansible-openwrt/commit/c5fc7b4e6d6e05814480a2f5974ab7ccc755e27b))
+
+
+### Bug Fixes
+
+* add banip runtime options to template for reboot idempotency ([#122](https://github.com/ruzickap/ansible-openwrt/issues/122)) ([0ffe510](https://github.com/ruzickap/ansible-openwrt/commit/0ffe510c13f52a61ec17de0bad8e3b708d0efd43))
+* enable openwrt/rootfs version updates via regex versioning ([#129](https://github.com/ruzickap/ansible-openwrt/issues/129)) ([4ab9674](https://github.com/ruzickap/ansible-openwrt/commit/4ab96744517f19690b5b6e36abd17377d9048794))
+* track openwrt version via github releases, pull from ghcr.io ([#132](https://github.com/ruzickap/ansible-openwrt/issues/132)) ([b39cfad](https://github.com/ruzickap/ansible-openwrt/commit/b39cfade440c2428524b26c9c18d801ab1992fe9))
+* update raspberrypi-wifi MAC address for gate.xvx.cz ([#130](https://github.com/ruzickap/ansible-openwrt/issues/130)) ([e8ac716](https://github.com/ruzickap/ansible-openwrt/commit/e8ac716acd2c28917d0b188ac87bd2d489929fb6))
+
 ## [3.2.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.1.0...v3.2.0) (2026-05-15)
 
 
