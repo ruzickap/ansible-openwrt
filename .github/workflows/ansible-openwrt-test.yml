@@ -31,11 +31,6 @@ jobs:
 
       - name: Determine latest stable OpenWrt version
         run: |
-          # Query the same sysupgrade API used by the playbook and pick the
-          # highest stable release. Keep only strict x.y.z versions (this
-          # excludes release candidates like -rc1), sort them version-aware,
-          # and take the highest one. `jq -e` exits non-zero if no match is
-          # found (e.g. null/empty output), failing the step.
           VERSION=$(curl -fsSL https://sysupgrade.openwrt.org/api/v1/latest |
             jq -er '
               .latest
