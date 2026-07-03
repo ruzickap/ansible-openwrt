@@ -18,10 +18,6 @@ defaults:
   run:
     shell: bash -euxo pipefail {0}
 
-env:
-  # renovate: datasource=github-releases depName=openwrt/openwrt extractVersion=^v(?<version>\d+\.\d+\.\d+)$
-  OPENWRT_VERSION: "25.12.4"
-
 jobs:
   gate-xvx-cz:
     name: "gate.xvx.cz (ASUS RT-AX53U)"
@@ -32,6 +28,19 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           persist-credentials: false
+
+      - name: Determine latest stable OpenWrt version
+        run: |
+          # Query the same sysupgrade API used by the playbook and pick the
+          # highest stable release.
+          version=$(curl -fsSL https://sysupgrade.openwrt.org/api/v1/latest |
+            jq -r '.latest | sort | last')
+          if [[ -z "${version}" ]]; then
+            echo "::error::No stable OpenWrt version found from sysupgrade API" >&2
+            exit 1
+          fi
+          echo "Latest stable OpenWrt version: ${version}"
+          echo "OPENWRT_VERSION=${version}" >> "${GITHUB_ENV}"
 
       - name: Start OpenWrt container with SSH
         run: |
