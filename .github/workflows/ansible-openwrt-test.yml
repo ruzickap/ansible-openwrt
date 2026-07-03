@@ -32,13 +32,20 @@ jobs:
       - name: Determine latest stable OpenWrt version
         run: |
           # Query the same sysupgrade API used by the playbook and pick the
-          # highest stable release.
+          # highest stable release. Keep only strict x.y.z versions (this
+          # excludes release candidates like -rc1), sort them version-aware,
+          # and take the highest one. `jq -e` exits non-zero if no match is
+          # found (e.g. null/empty output), failing the step.
           VERSION=$(curl -fsSL https://sysupgrade.openwrt.org/api/v1/latest |
-            jq -r '.latest | sort | last')
-          if [[ -z "${VERSION}" ]]; then
+            jq -er '
+              .latest
+              | map(select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
+              | sort_by(split(".") | map(tonumber))
+              | last
+            ') || {
             echo "::error::No stable OpenWrt version found from sysupgrade API" >&2
             exit 1
-          fi
+          }
           echo "Latest stable OpenWrt version: ${VERSION}"
           echo "OPENWRT_VERSION=${VERSION}" >> "${GITHUB_ENV}"
 
