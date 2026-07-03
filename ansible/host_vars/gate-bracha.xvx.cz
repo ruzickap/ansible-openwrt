@@ -77,7 +77,7 @@ usb_disk_mount_path: /mnt
 
 wifi_channel_2ghz: 1
 
-wifi_channel_5ghz: 157
+wifi_channel_5ghz: 44
 
 wifi_password: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_WIFI_PASSWORD') }}"
 
