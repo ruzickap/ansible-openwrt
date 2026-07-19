@@ -31,16 +31,13 @@ jobs:
 
       - name: Determine latest stable OpenWrt version
         run: |
-          VERSION=$(curl -fsSL https://sysupgrade.openwrt.org/api/v1/latest |
-            jq -er '
-              .latest
-              | map(select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
-              | sort_by(split(".") | map(tonumber))
-              | last
-            ') || {
-            echo "::error::No stable OpenWrt version found from sysupgrade API" >&2
+          # Pick the newest stable rootfs tag that exists (sysupgrade API can
+          # be ahead of images); skopeo and jq are preinstalled on the runner.
+          VERSION=$(skopeo list-tags docker://docker.io/openwrt/rootfs | jq -r '.Tags[] | select(test("^x86_64-[0-9]+\\.[0-9]+\\.[0-9]+$")) | sub("^x86_64-"; "")' | sort -V | tail -n1) || true
+          if [ -z "${VERSION}" ]; then
+            echo "::error::No stable OpenWrt rootfs image found in docker.io/openwrt/rootfs" >&2
             exit 1
-          }
+          fi
           echo "Latest stable OpenWrt version: ${VERSION}"
           echo "OPENWRT_VERSION=${VERSION}" >> "${GITHUB_ENV}"
 
@@ -50,7 +47,7 @@ jobs:
             --hostname gate \
             -p 2222:22 \
             --entrypoint /bin/sh \
-            "ghcr.io/openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
+            "docker.io/openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
             -c "sleep infinity"
 
           # Wait for container to be ready
