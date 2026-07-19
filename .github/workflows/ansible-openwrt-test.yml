@@ -31,14 +31,21 @@ jobs:
 
       - name: Determine latest stable OpenWrt version
         run: |
-          VERSION=$(curl -fsSL https://sysupgrade.openwrt.org/api/v1/latest |
+          # Derive the version from published rootfs tags, as sysupgrade
+          # firmware releases can be ahead of ghcr.io/openwrt/rootfs images.
+          TOKEN=$(curl -fsSL \
+            "https://ghcr.io/token?scope=repository:openwrt/rootfs:pull&service=ghcr.io" |
+            jq -r '.token')
+          VERSION=$(curl -fsSL -H "Authorization: Bearer ${TOKEN}" \
+            "https://ghcr.io/v2/openwrt/rootfs/tags/list?n=1000" |
             jq -er '
-              .latest
-              | map(select(test("^[0-9]+\\.[0-9]+\\.[0-9]+$")))
+              .tags
+              | map(select(test("^x86_64-[0-9]+\\.[0-9]+\\.[0-9]+$")))
+              | map(sub("^x86_64-"; ""))
               | sort_by(split(".") | map(tonumber))
               | last
             ') || {
-            echo "::error::No stable OpenWrt version found from sysupgrade API" >&2
+            echo "::error::No stable OpenWrt rootfs image found in ghcr.io/openwrt/rootfs" >&2
             exit 1
           }
           echo "Latest stable OpenWrt version: ${VERSION}"
