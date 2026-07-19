@@ -29,25 +29,22 @@ jobs:
         with:
           persist-credentials: false
 
+      - name: Install crane
+        uses: imjasonh/setup-crane@feee3b6bb0d4c68370f256a4502498c9227e5c6b # v0.7
+
       - name: Determine latest stable OpenWrt version
         run: |
           # Pick the newest stable rootfs tag that actually exists, as the
           # sysupgrade API can be ahead of the published container images.
-          TOKEN=$(curl -fsSL \
-            "https://auth.docker.io/token?service=registry.docker.io&scope=repository:openwrt/rootfs:pull" |
-            jq -r '.token')
-          VERSION=$(curl -fsSL -H "Authorization: Bearer ${TOKEN}" \
-            "https://registry-1.docker.io/v2/openwrt/rootfs/tags/list" |
-            jq -er '
-              .tags
-              | map(select(test("^x86_64-[0-9]+\\.[0-9]+\\.[0-9]+$")))
-              | map(sub("^x86_64-"; ""))
-              | sort_by(split(".") | map(tonumber))
-              | last
-            ') || {
+          VERSION=$(crane ls openwrt/rootfs |
+            grep -E '^x86_64-[0-9]+\.[0-9]+\.[0-9]+$' |
+            sed 's/^x86_64-//' |
+            sort -V |
+            tail -n1) || true
+          if [ -z "${VERSION}" ]; then
             echo "::error::No stable OpenWrt rootfs image found in openwrt/rootfs" >&2
             exit 1
-          }
+          fi
           echo "Latest stable OpenWrt version: ${VERSION}"
           echo "OPENWRT_VERSION=${VERSION}" >> "${GITHUB_ENV}"
 

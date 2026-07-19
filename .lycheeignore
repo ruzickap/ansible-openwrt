@@ -1,5 +1,2 @@
 # OpenWrt Sysupgrade API endpoints (not browsable)
 https://sysupgrade\.openwrt\.org
-# Container registry API endpoints (require auth token, return 401)
-https://auth\.docker\.io
-https://registry-1\.docker\.io
