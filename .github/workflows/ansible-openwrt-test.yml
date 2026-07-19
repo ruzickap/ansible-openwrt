@@ -37,8 +37,7 @@ jobs:
           # Pick the newest stable rootfs tag that actually exists, as the
           # sysupgrade API can be ahead of the published container images.
           VERSION=$(crane ls openwrt/rootfs |
-            grep -E '^x86_64-[0-9]+\.[0-9]+\.[0-9]+$' |
-            sed 's/^x86_64-//' |
+            awk -F'x86_64-' '/^x86_64-[0-9]+\.[0-9]+\.[0-9]+$/ { print $2 }' |
             sort -V |
             tail -n1) || true
           if [ -z "${VERSION}" ]; then
