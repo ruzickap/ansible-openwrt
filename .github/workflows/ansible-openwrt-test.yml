@@ -31,13 +31,13 @@ jobs:
 
       - name: Determine latest stable OpenWrt version
         run: |
-          # Derive the version from published rootfs tags, as sysupgrade
-          # firmware releases can be ahead of ghcr.io/openwrt/rootfs images.
+          # Pick the newest stable rootfs tag that actually exists, as the
+          # sysupgrade API can be ahead of the published container images.
           TOKEN=$(curl -fsSL \
-            "https://ghcr.io/token?scope=repository:openwrt/rootfs:pull&service=ghcr.io" |
+            "https://auth.docker.io/token?service=registry.docker.io&scope=repository:openwrt/rootfs:pull" |
             jq -r '.token')
           VERSION=$(curl -fsSL -H "Authorization: Bearer ${TOKEN}" \
-            "https://ghcr.io/v2/openwrt/rootfs/tags/list?n=1000" |
+            "https://registry-1.docker.io/v2/openwrt/rootfs/tags/list" |
             jq -er '
               .tags
               | map(select(test("^x86_64-[0-9]+\\.[0-9]+\\.[0-9]+$")))
@@ -45,7 +45,7 @@ jobs:
               | sort_by(split(".") | map(tonumber))
               | last
             ') || {
-            echo "::error::No stable OpenWrt rootfs image found in ghcr.io/openwrt/rootfs" >&2
+            echo "::error::No stable OpenWrt rootfs image found in openwrt/rootfs" >&2
             exit 1
           }
           echo "Latest stable OpenWrt version: ${VERSION}"
@@ -57,7 +57,7 @@ jobs:
             --hostname gate \
             -p 2222:22 \
             --entrypoint /bin/sh \
-            "ghcr.io/openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
+            "openwrt/rootfs:x86_64-${OPENWRT_VERSION}" \
             -c "sleep infinity"
 
           # Wait for container to be ready
