@@ -1,7 +1,7 @@
 [tools]
 ansible = { version = "14.3.1", pipx_args = "--preinstall passlib" }
 fnox = "1.34.1"
-pipx = "1.17.1"
+pipx = "1.17.2"
 
 [plugins]
 fnox-env = "https://github.com/jdx/mise-env-fnox"
