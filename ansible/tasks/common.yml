@@ -8,12 +8,11 @@
 - name: Create dropbear_ed25519_host_key for dropbear
   ansible.builtin.shell: |
     python3 - <<'PY'
-    import base64, os, pathlib
+    import base64, pathlib
     path = pathlib.Path("/etc/dropbear/dropbear_ed25519_host_key")
     data = base64.b64decode("{{ dropbear_ed25519_host_key }}")
     changed = not path.exists() or path.read_bytes() != data or (path.stat().st_mode & 0o777) != 0o600
     if changed:
-        os.umask(0o077)
         path.write_bytes(data)
         path.chmod(0o600)
     print("changed" if changed else "ok")
