@@ -76,9 +76,11 @@ jobs:
 
           # Generate a valid test-only Dropbear ed25519 host key for the playbook
           docker exec openwrt dropbearkey -t ed25519 -f /tmp/ci_ed25519_host_key
+          set +x
           DROPBEAR_KEY=$(docker exec openwrt cat /tmp/ci_ed25519_host_key | base64 -w0)
           echo "::add-mask::${DROPBEAR_KEY}"
           echo "GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY=${DROPBEAR_KEY}" >> "${GITHUB_ENV}"
+          set -x
 
       - name: Install Ansible and dependencies
         run: |
