@@ -15,6 +15,21 @@
   changed_when: false
   no_log: true
 
+# The RSA host key is generated automatically (changes on every reinstall) - offer only the managed ed25519 host key
+- name: Configure dropbear to use only dropbear_ed25519_host_key (/etc/config/dropbear)
+  ansible.builtin.copy:
+    dest: /etc/config/dropbear
+    mode: u=rw,g=r,o=r
+    backup: true
+    content: |
+      config dropbear 'main'
+        option enable '1'
+        option PasswordAuth 'on'
+        option RootPasswordAuth 'on'
+        option Port '22'
+        list keyfile '/etc/dropbear/dropbear_ed25519_host_key'
+  notify: Restart dropbear
+
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
   ansible.builtin.copy:
     dest: /etc/dropbear/authorized_keys
