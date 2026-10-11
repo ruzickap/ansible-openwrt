@@ -74,6 +74,12 @@ jobs:
           ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
             -p 2222 root@127.0.0.1 "echo 'SSH connection successful'"
 
+          # Generate a valid test-only Dropbear ed25519 host key for the playbook
+          docker exec openwrt dropbearkey -t ed25519 -f /tmp/ci_ed25519_host_key
+          DROPBEAR_KEY=$(docker exec openwrt cat /tmp/ci_ed25519_host_key | base64 -w0)
+          echo "::add-mask::${DROPBEAR_KEY}"
+          echo "GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY=${DROPBEAR_KEY}" >> "${GITHUB_ENV}"
+
       - name: Install Ansible and dependencies
         run: |
           pip3 install ansible passlib
@@ -94,7 +100,6 @@ jobs:
       - name: Run Ansible playbook
         env:
           GATE_XVX_CZ_CLOUDFLARE_API_KEY: ci-test-dummy-value
-          GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY: AAAAC3NzaC1lZDI1NTE5AAAAIBFakeKeyForCITestingOnlyNotReal00000000000=
           GATE_XVX_CZ_LUCI_HOMEPAGE_OPENWRT_WIDGET_PASSWORD_HASH: ci-test-dummy-value
           GATE_XVX_CZ_MSMP_AUTH_PASSWORD: ci-test-dummy-value
           GATE_XVX_CZ_ROOT_PASSWORD: ci-test-dummy-value
@@ -104,6 +109,29 @@ jobs:
           ansible-playbook --diff main.yml \
             -i inventory/test-hosts \
             --limit gate.xvx.cz
+
+      # The container has no procd, so the "Restart dropbear" handler is a no-op there.
+      # Restart Dropbear manually with the deployed key to prove it is valid and served alone.
+      - name: Verify Dropbear serves only the managed host key
+        run: |
+          docker exec openwrt sh -c '
+            set -eu
+            grep -q "list keyfile '\''/etc/dropbear/dropbear_ed25519_host_key'\''" /etc/config/dropbear
+            ls -l /etc/dropbear/dropbear_ed25519_host_key | grep -q "^-rw------- "
+            cmp /tmp/ci_ed25519_host_key /etc/dropbear/dropbear_ed25519_host_key
+            killall dropbear
+            sleep 1
+            dropbear -p 22 -r /etc/dropbear/dropbear_ed25519_host_key
+          '
+          sleep 2
+          EXPECTED=$(docker exec openwrt dropbearkey -y -f /tmp/ci_ed25519_host_key | awk '/^ssh-/ { print $1, $2 }')
+          OFFERED=$(ssh-keyscan -p 2222 127.0.0.1 2> /dev/null | awk '!/^#/ { print $2, $3 }')
+          if [[ "${OFFERED}" != "${EXPECTED}" ]]; then
+            echo "::error::Dropbear host keys differ from the managed key: ${OFFERED}" >&2
+            exit 1
+          fi
+          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+            -p 2222 root@127.0.0.1 "echo 'SSH connection successful'"
 
       - name: Cleanup
         if: always()
