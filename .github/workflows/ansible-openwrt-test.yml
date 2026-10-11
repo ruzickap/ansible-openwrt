@@ -124,14 +124,14 @@ jobs:
             dropbear -p 22 -r /etc/dropbear/dropbear_ed25519_host_key
           '
           sleep 2
+          # ssh-keyscan completes a key exchange signed by the host key; an SSH login is not
+          # possible here because the play replaces authorized_keys with the real user keys
           EXPECTED=$(docker exec openwrt dropbearkey -y -f /tmp/ci_ed25519_host_key | awk '/^ssh-/ { print $1, $2 }')
           OFFERED=$(ssh-keyscan -p 2222 127.0.0.1 2> /dev/null | awk '!/^#/ { print $2, $3 }')
           if [[ "${OFFERED}" != "${EXPECTED}" ]]; then
             echo "::error::Dropbear host keys differ from the managed key: ${OFFERED}" >&2
             exit 1
           fi
-          ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-            -p 2222 root@127.0.0.1 "echo 'SSH connection successful'"
 
       - name: Cleanup
         if: always()
