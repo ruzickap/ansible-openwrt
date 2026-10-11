@@ -8,12 +8,42 @@
 - name: Create dropbear_ed25519_host_key for dropbear
   ansible.builtin.shell: |
     python3 - <<'PY'
-    import base64, pathlib
+    import base64, os, pathlib, subprocess, sys
+    path = pathlib.Path("/etc/dropbear/dropbear_ed25519_host_key")
     data = base64.b64decode("{{ dropbear_ed25519_host_key }}")
-    pathlib.Path("/etc/dropbear/dropbear_ed25519_host_key").write_bytes(data)
+    if path.exists() and path.read_bytes() == data and (path.stat().st_mode & 0o777) == 0o600:
+        print("ok")
+        sys.exit(0)
+    # Validate the key before replacing the live one - Dropbear would silently regenerate an invalid key
+    tmp = path.with_name(path.name + ".new")
+    tmp.write_bytes(data)
+    tmp.chmod(0o600)
+    pub = subprocess.run(["dropbearkey", "-y", "-f", str(tmp)], capture_output=True, text=True)
+    if pub.returncode != 0 or not any(line.startswith("ssh-ed25519 ") for line in pub.stdout.splitlines()):
+        tmp.unlink()
+        sys.exit("dropbear_ed25519_host_key is not a valid Dropbear ed25519 private key")
+    os.replace(tmp, path)
+    print("changed")
     PY
-  changed_when: false
+  register: dropbear_ed25519_host_key_result
+  changed_when: dropbear_ed25519_host_key_result.stdout == "changed"
+  notify: Restart dropbear
   no_log: true
+
+# The RSA host key is generated automatically (changes on every reinstall) - offer only the managed ed25519 host key
+- name: Configure dropbear to use only dropbear_ed25519_host_key (/etc/config/dropbear)
+  ansible.builtin.copy:
+    dest: /etc/config/dropbear
+    mode: u=rw,g=r,o=r
+    backup: true
+    content: |
+      config dropbear 'main'
+        option enable '1'
+        option PasswordAuth 'on'
+        option RootPasswordAuth 'on'
+        option Port '22'
+        list keyfile '/etc/dropbear/dropbear_ed25519_host_key'
+  notify: Restart dropbear
 
 - name: Create authorized_keys for dropbear (/etc/dropbear/authorized_keys)
   ansible.builtin.copy:

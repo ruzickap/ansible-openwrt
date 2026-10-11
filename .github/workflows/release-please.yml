@@ -10,11 +10,11 @@ on:
     branches:
       - main
 
-permissions: read-all
+permissions: {}
 
 jobs:
   release-please:
-    runs-on: ubuntu-24.04-arm
+    runs-on: ubuntu-26.04-arm
     timeout-minutes: 5
     permissions:
       contents: write

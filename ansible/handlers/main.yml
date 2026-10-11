@@ -4,3 +4,8 @@
     # "reloaded" is a workaround to force the service to restore the data from the backup
     state: reloaded
     enabled: true
+
+- name: Restart dropbear
+  community.general.openwrt_init:
+    name: dropbear
+    state: restarted
