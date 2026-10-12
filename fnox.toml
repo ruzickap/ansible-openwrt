@@ -1,3 +1,6 @@
+# Inject secrets only into `fnox exec` (mise tasks), not the interactive shell
+env = "exec"
+
 [providers]
 ps = { type = "aws-ps", profile = "my-aws", region = "eu-central-1" }
 
