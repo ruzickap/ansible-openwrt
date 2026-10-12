@@ -1,5 +1,5 @@
 # keep-sorted start newline_separated=yes
-cloudflare_api_key: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_CLOUDFLARE_API_KEY') }}"
+cloudflared_tunnel_token: "{{ lookup('env', 'GATE_BRACHA_XVX_CZ_CLOUDFLARED_TUNNEL_TOKEN') }}"
 
 dhcp_hosts:
   - ip: 192.168.1.2

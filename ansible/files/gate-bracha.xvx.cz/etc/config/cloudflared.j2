@@ -1,7 +1,7 @@
 
 config cloudflared 'config'
 	option enabled '1'
-	option token '{{ cloudflare_api_key }}'
+	option token '{{ cloudflared_tunnel_token }}'
 #	option config '/etc/cloudflared/config.yml'
 #	option origincert '/etc/cloudflared/cert.pem'
 	option edge_bind_address ''
