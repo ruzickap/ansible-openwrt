@@ -9,8 +9,8 @@ There is no application code here; the "program" is the Ansible play in
 
 - Tooling is pinned via `mise` (`mise.toml`). Ansible, `fnox`, and `pipx` are
   installed by mise, not `pip` directly. Run `mise install` first.
-- Secrets are injected as env vars by `fnox` via the `mise-env-fnox` plugin
-  (`[env]._.fnox-env` in `mise.toml`). `fnox.toml` maps each
+- Secrets are injected as env vars by `fnox exec`, which wraps every
+  `ansible-playbook` call in the `mise.toml` tasks. `fnox.toml` maps each
   `GATE_*` env var to an AWS Parameter Store path (profile `my-aws`,
   region `eu-central-1`). Running real plays requires AWS access; missing
   secrets error out (`if_missing = "error"`).
@@ -26,10 +26,10 @@ Run via mise tasks (they `cd` into `ansible/` and tee logs to `/tmp`):
 - `mise run run-ansible:gate-xvx-cz` — configure only (skip firmware build).
 - Replace `gate-xvx-cz` with `gate-bracha-xvx-cz` for the other device.
 
-Raw equivalent (from `ansible/`):
+Raw equivalent (from `ansible/`, `fnox exec` loads the secrets):
 
 ```text
-ansible-playbook --diff main.yml -i inventory/hosts --limit <host> \
+fnox exec -- ansible-playbook --diff main.yml -i inventory/hosts --limit <host> \
   [-e build_firmware=true] [-e build_firmware_only=true]
 ```
 
