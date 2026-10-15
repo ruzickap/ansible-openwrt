@@ -1,7 +1,7 @@
 [tools]
 ansible = { version = "14.5.0", pipx_args = "--preinstall passlib" }
 fnox = "1.39.0"
-pipx = "1.17.13"
+pipx = "1.17.14"
 
 [tasks."build-firmware:gate-xvx-cz"]
 description = "Build OpenWrt firmware for gate.xvx.cz (ASUS RT-AX53U) and display results"
