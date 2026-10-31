@@ -82,9 +82,14 @@ jobs:
           echo "GATE_XVX_CZ_DROPBEAR_ED25519_HOST_KEY=${DROPBEAR_KEY}" >> "${GITHUB_ENV}"
           set -x
 
+      - name: Install uv
+        uses: astral-sh/setup-uv@68559e99cc807c1eb7e9238fd43a15bba460eec2 # v10.3.3
+        with:
+          enable-cache: false
+
       - name: Install Ansible and dependencies
         run: |
-          pip3 install ansible passlib
+          uv tool install --with ansible --with passlib ansible-core
           ansible-galaxy collection install -r ansible/requirements.yml
 
       - name: Create test inventory
