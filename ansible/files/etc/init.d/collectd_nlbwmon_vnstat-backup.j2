@@ -1,4 +1,5 @@
 #!/bin/sh /etc/rc.common
+# shellcheck disable=SC2034 # START/STOP/EXTRA_* are read by /etc/rc.common
 
 # Based on: https://openwrt.org/docs/guide-user/services/network_monitoring/vnstat
 
@@ -75,7 +76,7 @@ backup_database() {
   else
     logger -t "${LOGGER_TAG}" -p info "backing up collectd database"
     printf '%s' " collectd" >> "${BACKUP_DIR}/log"
-    rsync -a --delete "${COLLECTD_DIR}" "${BACKUP_DIR}/"
+    rsync -a --delete --min-size=1 "${COLLECTD_DIR}" "${BACKUP_DIR}/"
   fi
 
   if [ ! -d "${NLBWMON_DIR}" ]; then
@@ -84,7 +85,8 @@ backup_database() {
   else
     logger -t "${LOGGER_TAG}" -p info "backing up nlbwmon database"
     printf '%s' " nlbwmon" >> "${BACKUP_DIR}/log"
-    rsync -a --delete "${NLBWMON_DIR}" "${BACKUP_DIR}/"
+    # An interrupted nlbwmon save leaves a 0-byte file - never let it overwrite a good backup
+    rsync -a --delete --min-size=1 "${NLBWMON_DIR}" "${BACKUP_DIR}/"
   fi
 
   if [ ! -d "${VNSTAT_DIR}" ]; then
@@ -93,7 +95,7 @@ backup_database() {
   else
     logger -t "${LOGGER_TAG}" -p info "backing up vnstat database"
     printf '%s' " vnstat" >> "${BACKUP_DIR}/log"
-    rsync -a --delete "${VNSTAT_DIR}" "${BACKUP_DIR}/"
+    rsync -a --delete --min-size=1 "${VNSTAT_DIR}" "${BACKUP_DIR}/"
   fi
 
   echo >> "${BACKUP_DIR}/log"
@@ -127,6 +129,8 @@ restore_database() {
     printf '%s' " nlbwmon" >> "${BACKUP_DIR}/log"
     [ ! -d "${NLBWMON_DIR}" ] && mkdir "${NLBWMON_DIR}"
     rsync -a --delete "${BACKUP_DIR}/${NLBWMON_DIR_BASENAME}/" "${NLBWMON_DIR}/"
+    # nlbwmon refuses to start ("Result not representable") when a database file is empty
+    find "${NLBWMON_DIR}" -name '*.db.gz' -size 0 -exec rm -f {} +
   fi
 
   if [ ! -d "${BACKUP_DIR}/${VNSTAT_DIR_BASENAME}" ]; then

@@ -199,6 +199,7 @@
     src: files/{{ inventory_hostname }}/etc/config/banip
     mode: u=rw,g=,o=
     backup: true
+  notify: Restart banip
 
 ############################################
 # Configure msmtp + email notifications

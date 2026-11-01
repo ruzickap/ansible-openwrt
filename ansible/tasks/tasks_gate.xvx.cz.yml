@@ -4,6 +4,7 @@
     src: files/{{ inventory_hostname }}/etc/config/hd-idle
     mode: u=rw,g=,o=
     backup: true
+  notify: Restart hd-idle
 
 - name: Configure prometheus-node-exporter-ucode
   ansible.builtin.copy:
@@ -19,6 +20,7 @@
     mode: u=rw,g=,o=
     backup: true
   no_log: true
+  notify: Restart cloudflared
 
 ############################################
 # Transmission
