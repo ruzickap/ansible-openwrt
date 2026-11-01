@@ -1,0 +1,12 @@
+{
+  "threshold": 0,
+  "reporters": ["console"],
+  "ignore": [
+    "**/.git/**",
+    "**/.github/**",
+    "**/CHANGELOG.md",
+    "**/ansible/files/gate-bracha.xvx.cz/**",
+    "**/ansible/tasks/tasks_gate-bracha.xvx.cz.yml"
+  ],
+  "absolute": true
+}
