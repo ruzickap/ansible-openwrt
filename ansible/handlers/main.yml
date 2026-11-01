@@ -5,7 +5,27 @@
     state: reloaded
     enabled: true
 
+- name: Restart banip
+  community.general.openwrt_init:
+    name: banip
+    state: restarted
+
+- name: Restart cloudflared
+  community.general.openwrt_init:
+    name: cloudflared
+    state: restarted
+
 - name: Restart dropbear
   community.general.openwrt_init:
     name: dropbear
+    state: restarted
+
+- name: Reload firewall
+  community.general.openwrt_init:
+    name: firewall
+    state: reloaded
+
+- name: Restart hd-idle
+  community.general.openwrt_init:
+    name: hd-idle
     state: restarted

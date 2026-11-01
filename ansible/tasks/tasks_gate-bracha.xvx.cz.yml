@@ -5,3 +5,4 @@
     mode: u=rw,g=,o=
     backup: true
   no_log: true
+  notify: Restart cloudflared
