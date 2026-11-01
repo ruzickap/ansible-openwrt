@@ -65,6 +65,7 @@
     src: files/{{ inventory_hostname }}/etc/config/firewall.j2
     mode: u=rw,g=r,o=r
     backup: true
+  notify: Reload firewall
 
 - name: Configure WiFi
   ansible.builtin.template:

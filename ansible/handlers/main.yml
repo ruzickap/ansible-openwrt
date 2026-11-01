@@ -20,6 +20,11 @@
     name: dropbear
     state: restarted
 
+- name: Reload firewall
+  community.general.openwrt_init:
+    name: firewall
+    state: reloaded
+
 - name: Restart hd-idle
   community.general.openwrt_init:
     name: hd-idle
