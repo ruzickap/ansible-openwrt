@@ -1,6 +1,6 @@
 [tools]
 ansible = { version = "14.5.0", pipx_args = "--preinstall passlib" }
-fnox = "1.45.0"
+fnox = "1.46.0"
 pipx = "1.18.11"
 
 [tasks."build-firmware:gate-xvx-cz"]
