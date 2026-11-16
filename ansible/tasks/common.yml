@@ -79,9 +79,10 @@
   ansible.builtin.replace:
     path: /etc/shadow
     regexp: "^root:([^:]*):"
-    replace: "root:{{ root_password | string | password_hash('sha256') }}:"
+    # shortcut: salt comes from the hostname (public), use a secret salt if the hash can leak
+    replace: "root:{{ root_password | string | password_hash('sha256', inventory_hostname | hash('md5') | truncate(16, true, '')) }}:"
     backup: true
-  changed_when: false
+  no_log: true
 
 - name: Install packages
   community.general.apk:
@@ -241,8 +242,8 @@
         mode: u=rwx,g=rx,o=rx
 
     - name: Check the mounted disks
-      ansible.builtin.command: |
-        cat /proc/mounts
+      ansible.builtin.command:
+        cmd: cat /proc/mounts
       changed_when: false
       register: mount_output
 
@@ -254,18 +255,17 @@
         mode: u=rw,g=r,o=r
       when: mount_output.stdout is not search('/dev/' + usb_disk_device + '1 ' + usb_disk_mount_path )
 
-    - name: Create "media" directories on the disk
+    - name: Create media directories on the disk
       ansible.builtin.file:
-        path: "{{ usb_disk_mount_path }}/{{ item.name }}"
+        path: "{{ item }}"
         state: directory
         owner: root
         group: root
-        mode: "{{ item.mode | default('u=rwx,g=rx,o=rx') }}"
+        mode: u=rwx,g=rx,o=rx
       loop:
-        - name: media
-          mode: u=rx,g=rx,o=rx
-        - name: media/movies
-        - name: media/music
+        - "{{ usb_disk_mount_path }}/media"
+        - "{{ usb_disk_mount_path }}/media/movies"
+        - "{{ usb_disk_mount_path }}/media/music"
 
     - name: Mount USB disk
       ansible.builtin.command: |
@@ -300,7 +300,7 @@
     name: "Backup collectd nlbwmon vnstat databases"
     minute: "0"
     hour: "3"
-    job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup"
+    job: "/etc/init.d/collectd_nlbwmon_vnstat-backup backup >> {{ openwrt_backup_directory }}/cron.log 2>&1"
 
 - name: Restore data using collectd_nlbwmon_vnstat-backup
   ansible.builtin.command: /etc/init.d/collectd_nlbwmon_vnstat-backup restore
