@@ -94,8 +94,6 @@ root_password: "{{ lookup('env', 'GATE_XVX_CZ_ROOT_PASSWORD') }}"
 
 transmission_blocklist_url: https://raw.githubusercontent.com/Naunter/BT_BlockLists/master/bt_blocklists
 
-transmission_speed_limit_down: 3000
-
 transmission_speed_limit_up: 10
 
 usb_disk_device: sda
