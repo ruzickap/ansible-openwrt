@@ -7,13 +7,8 @@ config transmission
 	option mem_percentage 50
 	option nice 10
 	option web_home ''
-	option alt_speed_down 99999
-	option alt_speed_enabled true
-	option alt_speed_time_begin  60
-	option alt_speed_time_day 127
-	option alt_speed_time_enabled true
-	option alt_speed_time_end 420
-	option alt_speed_up 10
+	option alt_speed_enabled false
+	option alt_speed_time_enabled false
 	option bind_address_ipv4 '0.0.0.0'
 	option bind_address_ipv6 '::'
 	option blocklist_enabled true
@@ -65,8 +60,7 @@ config transmission
 	option script_torrent_done_filename ''
 	option seed_queue_enabled false
 	option seed_queue_size 10
-	option speed_limit_down {{ transmission_speed_limit_down }}
-	option speed_limit_down_enabled true
+	option speed_limit_down_enabled false
 	option speed_limit_up {{ transmission_speed_limit_up }}
 	option speed_limit_up_enabled true
 	option start_added_torrents true
