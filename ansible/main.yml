@@ -6,6 +6,10 @@
     network_prefix: "{{ network_ip_subnet.split('/')[0].split('.')[:3] | join('.') }}"
 
   tasks:
+    - name: Check the subnet is a /24 (network_prefix assumes it)
+      ansible.builtin.assert:
+        that: network_ip_subnet.endswith('/24')
+
     - name: Build custom OpenWrt firmware
       ansible.builtin.include_tasks: tasks/build_firmware.yml
       when: build_firmware | default(false) | bool

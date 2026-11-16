@@ -39,7 +39,7 @@
     enabled: true
 
 - name: Download block list
-  ansible.builtin.command: wget "{{ transmission_blocklist_url }}" -O "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
+  ansible.builtin.shell: wget -q -T 30 "{{ transmission_blocklist_url }}" -O "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists.tmp" && mv "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists.tmp" "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
   args:
     creates: "{{ usb_disk_mount_path }}/torrents/config/blocklists/bt_blocklists"
 

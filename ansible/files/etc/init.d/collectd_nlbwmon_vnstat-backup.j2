@@ -22,6 +22,7 @@ COLLECTD_DIR_BASENAME="$(basename "${COLLECTD_DIR}")"
 NLBWMON_DIR="$(uci get nlbwmon.@nlbwmon[0].database_directory)"
 NLBWMON_DIR_BASENAME="$(basename "${NLBWMON_DIR}")"
 
+RC=0
 SERVICES_STOPPED=0
 COLLECTD_WAS_RUNNING=0
 NLBWMON_WAS_RUNNING=0
@@ -73,29 +74,32 @@ backup_database() {
   if [ ! -d "${COLLECTD_DIR}" ]; then
     echo >> "${BACKUP_DIR}/log"
     logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${COLLECTD_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
+    RC=1
   else
     logger -t "${LOGGER_TAG}" -p info "backing up collectd database"
     printf '%s' " collectd" >> "${BACKUP_DIR}/log"
-    rsync -a --delete --min-size=1 "${COLLECTD_DIR}" "${BACKUP_DIR}/"
+    rsync -a --delete --min-size=1 "${COLLECTD_DIR}" "${BACKUP_DIR}/" || RC=1
   fi
 
   if [ ! -d "${NLBWMON_DIR}" ]; then
     echo >> "${BACKUP_DIR}/log"
     logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${NLBWMON_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
+    RC=1
   else
     logger -t "${LOGGER_TAG}" -p info "backing up nlbwmon database"
     printf '%s' " nlbwmon" >> "${BACKUP_DIR}/log"
     # An interrupted nlbwmon save leaves a 0-byte file - never let it overwrite a good backup
-    rsync -a --delete --min-size=1 "${NLBWMON_DIR}" "${BACKUP_DIR}/"
+    rsync -a --delete --min-size=1 "${NLBWMON_DIR}" "${BACKUP_DIR}/" || RC=1
   fi
 
   if [ ! -d "${VNSTAT_DIR}" ]; then
     echo >> "${BACKUP_DIR}/log"
     logger -s -t "${LOGGER_TAG}" -p err "cannot backup, data directory ${VNSTAT_DIR} does not exist (yet)" 2>&1 | tee -a "${BACKUP_DIR}/log"
+    RC=1
   else
     logger -t "${LOGGER_TAG}" -p info "backing up vnstat database"
     printf '%s' " vnstat" >> "${BACKUP_DIR}/log"
-    rsync -a --delete --min-size=1 "${VNSTAT_DIR}" "${BACKUP_DIR}/"
+    rsync -a --delete --min-size=1 "${VNSTAT_DIR}" "${BACKUP_DIR}/" || RC=1
   fi
 
   echo >> "${BACKUP_DIR}/log"
@@ -104,6 +108,7 @@ backup_database() {
     restart_services
   fi
   trap - EXIT HUP INT TERM
+  return "${RC}"
 }
 
 restore_database() {
