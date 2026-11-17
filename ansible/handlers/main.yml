@@ -24,6 +24,8 @@
   community.general.openwrt_init:
     name: firewall
     state: reloaded
+  # CI container has no fw4 loaded
+  when: ansible_host != '127.0.0.1'
 
 - name: Restart hd-idle
   community.general.openwrt_init:
