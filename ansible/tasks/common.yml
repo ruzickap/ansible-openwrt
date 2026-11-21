@@ -74,6 +74,7 @@
     mode: u=rw,g=r,o=r
     backup: true
   no_log: true
+  notify: Reload wifi
 
 - name: Set root password
   ansible.builtin.replace:

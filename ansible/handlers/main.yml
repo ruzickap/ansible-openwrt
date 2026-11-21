@@ -27,6 +27,12 @@
   # CI container has no fw4 loaded
   when: ansible_host != '127.0.0.1'
 
+- name: Reload wifi
+  ansible.builtin.command: wifi reload
+  changed_when: true
+  # CI container has no wifi radios
+  when: ansible_host != '127.0.0.1'
+
 - name: Restart hd-idle
   community.general.openwrt_init:
     name: hd-idle
