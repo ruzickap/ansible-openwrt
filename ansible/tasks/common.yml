@@ -67,6 +67,12 @@
     backup: true
   notify: Reload firewall
 
+# Before WiFi config: a missing wpad feature must fail before "Reload wifi" is queued
+- name: Install packages
+  community.general.apk:
+    # "-pkg" entries only remove packages from the firmware image
+    name: "{{ openwrt_packages | reject('match', '-') | join(',') }}"
+
 - name: Configure WiFi
   ansible.builtin.template:
     dest: /etc/config/wireless
@@ -84,11 +90,6 @@
     replace: "root:{{ root_password | string | password_hash('sha256', inventory_hostname | hash('md5') | truncate(16, true, '')) }}:"
     backup: true
   no_log: true
-
-- name: Install packages
-  community.general.apk:
-    # "-pkg" entries only remove packages from the firmware image
-    name: "{{ openwrt_packages | reject('match', '-') | join(',') }}"
 
 - name: Configure DHCP
   ansible.builtin.template:
