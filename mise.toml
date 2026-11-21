@@ -1,5 +1,5 @@
 [tools]
-ansible = { version = "15.0.0", pipx_args = "--preinstall passlib" }
+ansible = { version = "15.0.0", with = ["passlib"] }
 fnox = "1.48.0"
 pipx = "1.18.19"
 
