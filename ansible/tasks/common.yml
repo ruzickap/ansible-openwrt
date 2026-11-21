@@ -87,7 +87,8 @@
 
 - name: Install packages
   community.general.apk:
-    name: "{{ openwrt_packages | join(',') }}"
+    # "-pkg" entries only remove packages from the firmware image
+    name: "{{ openwrt_packages | reject('match', '-') | join(',') }}"
 
 - name: Configure DHCP
   ansible.builtin.template:
