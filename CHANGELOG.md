@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.4.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.3.0...v3.4.0) (2026-11-28)
+
+
+### Features
+
+* add roaming ssid on gate-bracha and relax transmission limits ([#151](https://github.com/ruzickap/ansible-openwrt/issues/151)) ([ac699c6](https://github.com/ruzickap/ansible-openwrt/commit/ac699c6fcd69e72d603b0a777ee77a278520c071))
+* enable 802.11k/v roaming on gate-bracha ([#157](https://github.com/ruzickap/ansible-openwrt/issues/157)) ([407e83a](https://github.com/ruzickap/ansible-openwrt/commit/407e83ad81fe1ccd10239b3a23ed9df2fdb6bad7))
+
+
+### Bug Fixes
+
+* harden backup script and idempotency of tasks ([#153](https://github.com/ruzickap/ansible-openwrt/issues/153)) ([c9d3887](https://github.com/ruzickap/ansible-openwrt/commit/c9d38872f8d3df8af549311a11fdc79486306064))
+* skip firewall reload handler in CI container ([#154](https://github.com/ruzickap/ansible-openwrt/issues/154)) ([a0c5103](https://github.com/ruzickap/ansible-openwrt/commit/a0c5103bb8bb4ce3c92efe7b9beb5d1fc07533d5))
+
 ## [3.3.0](https://github.com/ruzickap/ansible-openwrt/compare/v3.2.0...v3.3.0) (2026-11-01)
 
 
